@@ -27,8 +27,19 @@ const Navbar = () => {
             paddingBottom: 3,
           }}>{l}</a>
         ))}
-        <a href="#" style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 700, color: colors.textMid, textDecoration: "none" }}>Login</a>
-        <Button onClick={() => navigate("/dashboard")} size="sm">Sign Up</Button>
+
+        {/* ✅ FIXED: was <a href="#"> — now navigates to /login */}
+        <a
+          onClick={() => navigate("/login")}
+          style={{
+            fontFamily: fonts.body, fontSize: 14, fontWeight: 700,
+            color: colors.textMid, textDecoration: "none", cursor: "pointer",
+          }}
+        >
+          Login
+        </a>
+
+        <Button onClick={() => navigate("/patient-signup")} size="sm">Sign Up</Button>
       </div>
     </nav>
   );
@@ -81,13 +92,14 @@ const Hero = () => {
           Support For Today. Strength For Tomorrow.
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <Button onClick={() => navigate("/dashboard")} size="lg">Get Started →</Button>
+          <Button onClick={() => navigate("/patient-signup")} size="lg">Get Started →</Button>
           <Button variant="ghost" size="lg">Watch Demo ▶</Button>
         </div>
       </div>
     </section>
   );
 };
+
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 const StatsBar = () => (
   <div style={{
@@ -176,7 +188,7 @@ const CTA = () => {
           Join over 2 million people who've transformed their mental wellness.<br />Free forever to start.
         </p>
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-          <Button onClick={() => navigate("/dashboard")} size="lg">Create Free Account</Button>
+          <Button onClick={() => navigate("/patient-signup")} size="lg">Create Free Account</Button>
           <Button variant="ghost" size="lg">Talk to a Therapist</Button>
         </div>
         <p style={{ marginTop: 24, fontSize: 12, color: colors.textMuted, fontFamily: fonts.body }}>
