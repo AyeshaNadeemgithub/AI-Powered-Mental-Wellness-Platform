@@ -1,34 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Layout
 import AppLayout from "./components/layout/AppLayout";
 
 // Pages
-import Landing      from "./pages/Landing";
-import Dashboard    from "./pages/Dashboard";
-import Chat         from "./pages/Chat";
-import MoodTracking from "./pages/MoodTracking";
-import Journal      from "./pages/Journal";
-import Appointments from "./pages/Appointments";
-import Settings     from "./pages/Settings";
-import NotFound     from "./pages/NotFound";
+import Landing         from "./pages/Landing";
+import Dashboard       from "./pages/Dashboard";
+import Chat            from "./pages/Chat";
+import MoodTracking    from "./pages/MoodTracking";
+import Journal         from "./pages/Journal";
+import Appointments    from "./pages/Appointments";
+import Settings        from "./pages/Settings";
+import NotFound        from "./pages/NotFound";
+import Login           from "./pages/Login";
+import PatientSignup   from "./pages/PatientSignup";
+import TherapistSignup from "./pages/TherapistSignup";
+import AdminSignup     from "./pages/AdminSignup";
 
-/**
- * Route map:
- *   /                → Landing page (public)
- *   /dashboard       → Dashboard  (app shell with sidebar)
- *   /mood            → Mood Tracking
- *   /chat            → AI Chat
- *   /journal         → Journal
- *   /appointments    → Appointments
- *   /settings        → Settings
- *   *                → 404
- */
 const App = () => (
   <BrowserRouter>
     <Routes>
-      {/* Public */}
-      <Route path="/" element={<Landing />} />
+
+      {/* Public — no sidebar */}
+      <Route path="/"                 element={<Landing />} />
+      <Route path="/login"            element={<Login />} />
+      <Route path="/patient-signup"   element={<PatientSignup />} />
+      <Route path="/therapist-signup" element={<TherapistSignup />} />
+      <Route path="/admin-signup"     element={<AdminSignup />} />
 
       {/* App shell — all children get Sidebar + TopBar */}
       <Route element={<AppLayout />}>
@@ -42,6 +40,7 @@ const App = () => (
 
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
+
     </Routes>
   </BrowserRouter>
 );
