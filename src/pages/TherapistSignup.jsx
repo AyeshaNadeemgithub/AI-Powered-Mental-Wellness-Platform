@@ -99,6 +99,7 @@ export default function TherapistSignup() {
   };
 
   if (success) {
+    setTimeout(() => navigate("/psychologist-dashboard"), 1800);
     return (
       <div style={styles.page}>
         <div style={styles.blobA} /><div style={styles.blobB} />

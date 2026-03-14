@@ -16,17 +16,22 @@ import Login           from "./pages/Login";
 import PatientSignup   from "./pages/PatientSignup";
 import TherapistSignup from "./pages/TherapistSignup";
 import AdminSignup     from "./pages/AdminSignup";
+import AdminDashboard        from "./pages/AdminDashboard";
+import PsychologistDashboard from "./pages/PsychologistDashboard";
 
 const App = () => (
   <BrowserRouter>
     <Routes>
-
       {/* Public — no sidebar */}
       <Route path="/"                 element={<Landing />} />
       <Route path="/login"            element={<Login />} />
       <Route path="/patient-signup"   element={<PatientSignup />} />
       <Route path="/therapist-signup" element={<TherapistSignup />} />
       <Route path="/admin-signup"     element={<AdminSignup />} />
+
+      {/* Admin & Psychologist Dashboards — custom layout */}
+      <Route path="/admin-dashboard"        element={<AdminDashboard />} />
+      <Route path="/psychologist-dashboard" element={<PsychologistDashboard />} />
 
       {/* App shell — all children get Sidebar + TopBar */}
       <Route element={<AppLayout />}>
@@ -40,7 +45,6 @@ const App = () => (
 
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
-
     </Routes>
   </BrowserRouter>
 );

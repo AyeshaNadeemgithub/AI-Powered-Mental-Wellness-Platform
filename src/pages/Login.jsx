@@ -71,7 +71,10 @@ export default function Login() {
 
       // Redirect based on role
       setStep("success");
-      setTimeout(() => navigate("/dashboard"), 1800);
+      let redirectPath = "/dashboard";
+      if (selectedRole === "admin") redirectPath = "/admin-dashboard";
+      if (selectedRole === "psychologist") redirectPath = "/psychologist-dashboard";
+      setTimeout(() => navigate(redirectPath), 1800);
 
     } catch (err) {
       triggerShake("Connection failed. Is the backend running?");

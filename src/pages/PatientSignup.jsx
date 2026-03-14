@@ -57,30 +57,18 @@ export default function PatientSignup() {
 
     setLoading(true);
     setApiError("");
-
     try {
-      // ── REAL API CALL ──────────────────────────────────────────────────────
-      const result = await patientSignup({
-        fullName:       form.fullName,
-        email:          form.email,
-        phone:          form.phone,
-        password:       form.password,
-        primaryConcern: form.primaryConcern,
-        dob:            form.dob,
-      });
-
+      const result = await patientSignup(form);
       if (result.error) {
         setApiError(result.error);
         setLoading(false);
         return;
       }
-
-      // Save session so they're auto-logged in after signup
       saveSession(result.token, result.user);
       setSuccess(true);
-
+      setTimeout(() => navigate("/dashboard"), 1800);
     } catch (err) {
-      setApiError("Connection failed. Is the backend running on port 5000?");
+      setApiError("Connection failed. Is the backend running?");
     } finally {
       setLoading(false);
     }

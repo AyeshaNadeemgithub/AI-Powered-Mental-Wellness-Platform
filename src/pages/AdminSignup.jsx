@@ -56,27 +56,18 @@ export default function AdminSignup() {
 
     setLoading(true);
     setApiError("");
-
     try {
-      const result = await adminSignup({
-        fullName:   form.fullName,
-        email:      form.email,
-        phone:      form.phone,
-        department: form.department,
-        adminCode:  form.adminCode,
-        password:   form.password,
-      });
-
+      const result = await adminSignup(form);
       if (result.error) {
         setApiError(result.error);
         setLoading(false);
         return;
       }
-
       saveSession(result.token, result.user);
       setSuccess(true);
+      setTimeout(() => navigate("/admin-dashboard"), 1800);
     } catch (err) {
-      setApiError("Connection failed. Is the backend running on port 5000?");
+      setApiError("Connection failed. Is the backend running?");
     } finally {
       setLoading(false);
     }
