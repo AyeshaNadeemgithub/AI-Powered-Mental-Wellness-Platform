@@ -1,0 +1,305 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USERS
+// Central table — patients, psychologists, and admins all live here.
+// Role controls what they can access throughout the app.
+// ─────────────────────────────────────────────────────────────────────────────
+model User {
+  id           String    @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(PATIENT)
+  avatarUrl    String?
+  phone        String?
+  isVerified   Boolean   @default(false)
+  isActive     Boolean   @default(true)
+  lastActiveAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  psychologist     Psychologist?
+  moodLogs         MoodLog[]
+  journalEntries   JournalEntry[]
+  appointments     Appointment[]     @relation("PatientAppointments")
+  chatSessions     ChatSession[]
+  rewards          Reward[]
+  userBadges       UserBadge[]
+  notifications    Notification[]
+  appointmentNotes AppointmentNote[]
+}
+
+enum Role {
+  PATIENT
+  PSYCHOLOGIST
+  ADMIN
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PSYCHOLOGISTS
+// Extra data for users with role=PSYCHOLOGIST.
+// Linked 1-to-1 to User via userId.
+// ─────────────────────────────────────────────────────────────────────────────
+model Psychologist {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseNumber       String   @unique
+  specialization      String
+  bio                 String?
+  sessionDurationMins Int      @default(50)
+  hourlyRate          Decimal  @default(0)
+  languages           String[]
+  avgRating           Float    @default(0)
+  totalReviews        Int      @default(0)
+  isApproved          Boolean  @default(false)
+  createdAt           DateTime @default(now())
+
+  appointments      Appointment[]      @relation("PsychologistAppointments")
+  availabilitySlots AvailabilitySlot[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AVAILABILITY SLOTS
+// When a psychologist is free. dayOfWeek = 0 (Sun) to 6 (Sat).
+// specificDate used for one-off overrides.
+// ─────────────────────────────────────────────────────────────────────────────
+model AvailabilitySlot {
+  id             String       @id @default(uuid())
+  psychologistId String
+  psychologist   Psychologist @relation(fields: [psychologistId], references: [id], onDelete: Cascade)
+  dayOfWeek      Int?
+  startTime      String       // e.g. "09:00"
+  endTime        String       // e.g. "10:00"
+  isRecurring    Boolean      @default(true)
+  specificDate   DateTime?
+  isAvailable    Boolean      @default(true)
+
+  appointments Appointment[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPOINTMENTS
+// Core booking record. Links patient ↔ psychologist ↔ slot.
+// ─────────────────────────────────────────────────────────────────────────────
+model Appointment {
+  id             String            @id @default(uuid())
+  patientId      String
+  patient        User              @relation("PatientAppointments", fields: [patientId], references: [id])
+  psychologistId String
+  psychologist   Psychologist      @relation("PsychologistAppointments", fields: [psychologistId], references: [id])
+  slotId         String
+  slot           AvailabilitySlot  @relation(fields: [slotId], references: [id])
+  scheduledAt    DateTime
+  durationMins   Int               @default(50)
+  status         AppointmentStatus @default(PENDING)
+  sessionType    SessionType       @default(VIDEO)
+  meetingLink    String?
+  feeAmount      Decimal           @default(0)
+  paymentStatus  PaymentStatus     @default(UNPAID)
+  cancelledAt    DateTime?
+  cancelReason   String?
+  createdAt      DateTime          @default(now())
+
+  notes AppointmentNote[]
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum SessionType {
+  VIDEO
+  AUDIO
+  CHAT
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPOINTMENT NOTES
+// Post-session notes. isPrivate=true means only psychologist can see them.
+// ─────────────────────────────────────────────────────────────────────────────
+model AppointmentNote {
+  id            String      @id @default(uuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id])
+  content       String
+  isPrivate     Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOOD LOGS
+// Matches your MoodTracking.jsx exactly — emoji moods (1-7 scale), keywords/tags.
+// ─────────────────────────────────────────────────────────────────────────────
+model MoodLog {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moodScore    Int      // 1-7 matching your MOODS array
+  moodLabel    String   // e.g. "Joyful", "Calm", "Anxious"
+  moodEmoji    String   // e.g. "😄"
+  energyLevel  String?  // "low" | "medium" | "high"
+  sleepQuality String?  // "poor" | "fair" | "good"
+  sleepHours   Int?
+  notes        String?
+  loggedAt     DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  moodTags MoodTag[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAGS + MOOD_TAGS
+// Your KEYWORDS array from MoodTracking.jsx maps directly to tags.
+// MoodTag is the junction table (many-to-many).
+// ─────────────────────────────────────────────────────────────────────────────
+model Tag {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  emoji    String?   // e.g. "🙏" for "Grateful"
+  category String?
+  colorHex String?
+
+  moodTags MoodTag[]
+}
+
+model MoodTag {
+  moodLogId String
+  moodLog   MoodLog @relation(fields: [moodLogId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([moodLogId, tagId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// JOURNAL ENTRIES
+// Matches your Journal.jsx page. isPrivate always true — only owner reads it.
+// ─────────────────────────────────────────────────────────────────────────────
+model JournalEntry {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String?
+  content     String
+  moodLabel   String?
+  isEncrypted Boolean  @default(false)
+  mediaUrls   String[]
+  isPrivate   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHAT SESSIONS + MESSAGES
+// Matches your Chat.jsx. sessionType differentiates AI vs crisis support.
+// aiMetadata stores things like detected emotion, confidence score.
+// ─────────────────────────────────────────────────────────────────────────────
+model ChatSession {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String?
+  sessionType String    @default("ai_support")
+  aiModelUsed String?
+  isActive    Boolean   @default(true)
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+
+  messages ChatMessage[]
+}
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  sessionId   String
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  senderRole  String      // "user" | "assistant"
+  content     String
+  contentType String      @default("text")
+  aiMetadata  Json?
+  isFlagged   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REWARDS
+// Every action earns points. Used to calculate streaks in Dashboard.jsx.
+// actionType matches what your UI shows: MOOD_LOG, JOURNAL_ENTRY, etc.
+// ─────────────────────────────────────────────────────────────────────────────
+model Reward {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionType   String   // "SIGNUP" | "MOOD_LOG" | "JOURNAL_ENTRY" | "APPOINTMENT_BOOKED" | "CHAT_SESSION"
+  pointsEarned Int
+  description  String?
+  earnedAt     DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BADGES + USER_BADGES
+// Matches the 🥇 🛡️ badges shown in your Dashboard StreakCard.
+// unlockCriteria is JSON so you can define complex rules without schema changes.
+// ─────────────────────────────────────────────────────────────────────────────
+model Badge {
+  id             String      @id @default(uuid())
+  name           String      @unique
+  description    String
+  iconUrl        String?
+  emoji          String?
+  category       String?
+  pointsRequired Int         @default(0)
+  unlockCriteria Json?       // e.g. {"streak_days": 7, "action_type": "MOOD_LOG"}
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  badge    Badge  @relation(fields: [badgeId], references: [id])
+  earnedAt DateTime @default(now())
+
+  @@id([userId, badgeId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// In-app alerts. Triggered by appointments, streaks, new messages.
+// payload is JSON for deep-link data (e.g. appointmentId to navigate to).
+// ─────────────────────────────────────────────────────────────────────────────
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    // "APPOINTMENT_REMINDER" | "STREAK_MILESTONE" | "NEW_MESSAGE" | "BADGE_EARNED"
+  title     String
+  message   String
+  payload   Json?
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+}
