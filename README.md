@@ -1,125 +1,175 @@
-<<<<<<< HEAD
-# 🧘 CalmMind — Mental Wellness Platform
+# 🧘 CalmMind — AI-Powered Mental Wellness Platform
 
-## Quick Start
+CalmMind is a web-based mental wellness platform that connects patients with licensed psychologists while providing instant AI-driven emotional support. Users can track their mood, write in a private journal, book appointments, and engage with a 24/7 AI chatbot — all in one secure space.
 
-```bash
-npm install
-npm start
-```
-Open http://localhost:3000
+---
+
+## Team
+
+- Ayesha Nadeem
+- Kainat
+- Yousuf Hussain Khan
+
+---
+
+## Features
+
+- **AI Chatbot** — 24/7 emotional support powered by OpenAI API
+- **Mood Tracking** — Log and visualize daily mood trends with charts
+- **Private Journal** — Encrypted personal journaling
+- **Appointment Booking** — Schedule sessions with verified psychologists
+- **Psychologist Profiles** — Browse and connect with licensed professionals
+- **Reward & Streak System** — Gamified engagement to build consistent habits
+- **Role-Based Access** — Separate dashboards for patients and psychologists
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React.js, React Router, Tailwind CSS |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL, Prisma ORM |
+| AI | OpenAI API |
+| Real-time | Socket.io |
+| Deployment | Vercel (frontend), Render (backend) |
 
 ---
 
 ## Project Structure
 
 ```
-src/
+AI-Powered-Mental-Wellness-Platform/
 │
-├── styles/
-│   ├── theme.js        ← ALL colors, fonts, spacing (edit here!)
-│   └── index.css       ← Global CSS + animations
+├── backend/
+├── build/
+├── public/
 │
-├── data/
-│   └── index.js        ← All static data (nav, features, chat messages)
-│
-├── components/
-│   ├── layout/
-│   │   ├── AppLayout.jsx   ← Sidebar + TopBar shell (wraps all app pages)
-│   │   ├── Sidebar.jsx     ← Navigation sidebar with React Router NavLink
-│   │   └── TopBar.jsx      ← Top header bar
+├── src/
+│   ├── api/
 │   │
-│   └── ui/
-│       ├── Brand.jsx       ← Logo + MeditationSVG illustration
-│       ├── Button.jsx      ← Reusable button (primary/secondary/ghost)
-│       ├── Card.jsx        ← Reusable card wrapper
-│       ├── Badge.jsx       ← Colored badge/pill
-│       └── MoodChart.jsx   ← SVG mood line chart
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── AdminTopBar.jsx
+│   │   │   ├── AppLayout.jsx
+│   │   │   ├── PsychologistDash.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   ├── StaffDashboardLayout.jsx
+│   │   │   └── TopBar.jsx
+│   │   │
+│   │   └── ui/
+│   │       ├── Badge.jsx
+│   │       ├── Brand.jsx
+│   │       ├── Button.jsx
+│   │       ├── Card.jsx
+│   │       ├── CardBox.jsx
+│   │       ├── MoodBarChart.jsx
+│   │       ├── MoodChart.jsx
+│   │       ├── MoodTrendChart.jsx
+│   │       ├── PageHeader.jsx
+│   │       ├── ScheduleRightPanel.jsx
+│   │       ├── SidebarIcon.jsx
+│   │       ├── StatCard.jsx
+│   │       ├── SystemHealthChart.jsx
+│   │       └── WeekCalendarGrid.jsx
+│   │
+│   ├── data/
+│   │   └── index.js
+│   │
+│   ├── pages/
+│   │   ├── AdminDashboard.jsx
+│   │   ├── AdminSignup.jsx
+│   │   ├── Appointments.jsx
+│   │   ├── Chat.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Journal.jsx
+│   │   ├── Landing.jsx
+│   │   ├── Login.jsx
+│   │   ├── MoodTracking.jsx
+│   │   ├── NotFound.jsx
+│   │   ├── PatientSignup.jsx
+│   │   ├── PsychologistDashboard.jsx
+│   │   ├── Settings.jsx
+│   │   └── TherapistSignup.jsx
+│   │
+│   ├── styles/
+│   ├── App.jsx
+│   └── index.jsx
 │
-├── pages/
-│   ├── Landing.jsx         ← Public landing page (/)
-│   ├── Dashboard.jsx       ← Main dashboard (/dashboard)
-│   ├── Chat.jsx            ← AI Chat (/chat)
-│   ├── MoodTracking.jsx    ← Phase 2 (/mood)
-│   ├── Journal.jsx         ← Phase 2 (/journal)
-│   ├── Appointments.jsx    ← Phase 2 (/appointments)
-│   ├── Settings.jsx        ← Phase 2 (/settings)
-│   └── NotFound.jsx        ← 404 page
-│
-├── App.jsx                 ← Routes defined here
-└── index.jsx               ← Entry point
+├── .gitignore
+├── package.json
+└── README.md
 ```
 
 ---
 
-## How to Make Changes
+## Getting Started
 
-### Change any color
-Edit `src/styles/theme.js` → `colors` object:
-```js
-purple: "#7C3AED",  // ← change this
+### Prerequisites
+
+- Node.js v18+
+- npm or yarn
+- PostgreSQL running locally (or a cloud connection string)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/AyeshaNadeemgithub/AI-Powered-Mental-Wellness-Platform.git
+
+# Navigate into the project
+cd AI-Powered-Mental-Wellness-Platform
+
+# Install dependencies
+npm install
 ```
 
-### Add a new page
-1. Create `src/pages/MyPage.jsx`
-2. Add route in `src/App.jsx`:
-   ```jsx
-   <Route path="/mypage" element={<MyPage />} />
-   ```
-3. Add nav item in `src/data/index.js`:
-   ```js
-   { icon: "⭐", label: "My Page", path: "/mypage" }
-   ```
+### Environment Variables
 
-### Add a new nav item
-Edit `src/data/index.js` → `NAV_ITEMS` array.
+Create a `.env` file in the root directory:
 
-### Change chart data
-Edit `src/data/index.js` → `MOOD_DATA` array.
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/calmmind
+OPENAI_API_KEY=your_openai_api_key
+JWT_SECRET=your_jwt_secret
+```
 
----
+### Database Setup
 
-## Roadmap
+```bash
+# Run Prisma migrations
+npx prisma migrate dev
 
-| Phase | Features |
-|-------|----------|
-| ✅ Phase 1 | Landing, Dashboard, AI Chat, Navigation |
-| 🔜 Phase 2 | Login/Signup, Mood Tracker UI, Journal editor |
-| 🔜 Phase 3 | Appointment booking, Therapist profiles |
-| 🔜 Phase 4 | Real AI chatbot (API integration) |
-| 🔜 Phase 5 | Backend, database, authentication |
-=======
-# **CalmMind – AI Mental Wellness Platform**
+# (Optional) Open Prisma Studio to inspect your DB
+npx prisma studio
+```
 
-**CalmMind** is a web-based application designed to support mental health through professional therapy services and AI assistance. It allows users to track their mood, book appointments, chat with therapists, and receive **24/7 support from an AI chatbot**.
+### Run the App
+
+```bash
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## **Team**
+## Contributing
 
-- **Ayesha Nadeem**
-- **Kainat**
-- **Yousuf Hussain Khan**
-
----
-
-## **Key Features**
-
-- **User registration & login**
-- **Appointment booking system**
-- **Real-time mood tracking**
-- **AI mental health chatbot**
-- **Private journal**
-- **Reward & streak system**
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes: `git commit -m "feat: add your feature"`
+4. Push to the branch: `git push origin feature/your-feature-name`
+5. Open a Pull Request
 
 ---
 
-## **Tech Stack**
+## License
 
-**Frontend:** Next.js, Tailwind CSS  
-**Backend:** Node.js, Express.js  
-**Database:** MongoDB / MySQL  
-**AI:** OpenAI API  
-**Real-time:** Socket.io  
-**Deployment:** Vercel  
->>>>>>> 22f8ec9146ac0888da2ca8d9f82f1d5c8c4b968a
+This project is for academic and educational purposes.
+
+---
+
+> CalmMind — because mental health care should be accessible to everyone.
