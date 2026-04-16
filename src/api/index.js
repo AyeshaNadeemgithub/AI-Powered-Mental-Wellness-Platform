@@ -64,7 +64,10 @@ export const login           = (email, password, role) => post('/auth/login', { 
 export const getMe           = ()                     => get('/auth/me')
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
-export const getDashboard = () => get('/dashboard')
+export const getDashboard            = () => get('/dashboard')
+export const getNotifications         = () => get('/dashboard/notifications')
+export const markNotificationsAsRead = () => put('/dashboard/notifications/mark-read', {})
+export const clearAllNotifications   = () => del('/dashboard/notifications/clear-all')
 
 // ─── MOOD ─────────────────────────────────────────────────────────────────────
 export const logMood       = (data) => post('/mood', data, true)

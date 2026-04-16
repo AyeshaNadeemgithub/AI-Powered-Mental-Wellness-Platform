@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -205,6 +206,7 @@ model JournalEntry {
   title       String?
   content     String
   moodLabel   String?
+  tags        String[] // journal tag labels e.g. ["Gratitude 🙏", "Work 💼"]
   isEncrypted Boolean  @default(false)
   mediaUrls   String[]
   isPrivate   Boolean  @default(true)

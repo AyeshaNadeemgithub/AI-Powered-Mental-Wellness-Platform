@@ -2,13 +2,14 @@ const express = require('express')
 const router  = express.Router()
 const prisma  = require('../lib/prisma')
 const { protect } = require('../middleware/auth')
+const { awardActivityPoints } = require('../utils/gamification')
 
 router.use(protect)
 
 // POST /api/journal — create entry
 router.post('/', async (req, res) => {
   try {
-    const { title, content, moodLabel } = req.body
+    const { title, content, moodLabel, tags } = req.body
     if (!content) return res.status(400).json({ error: 'Journal content cannot be empty.' })
 
     const entry = await prisma.journalEntry.create({
@@ -17,21 +18,15 @@ router.post('/', async (req, res) => {
         title:     title || null,
         content,
         moodLabel: moodLabel || null,
+        tags:      tags || [],
         isPrivate: true,
       }
     })
 
-    // Award points for journaling
-    await prisma.reward.create({
-      data: {
-        userId:      req.user.id,
-        actionType:  'JOURNAL_ENTRY',
-        pointsEarned: 15,
-        description: 'Wrote a journal entry'
-      }
-    })
+    // AWARD POINTS AND CHECK BADGES
+    await awardActivityPoints(req.user.id, 'JOURNAL_ENTRY')
 
-    res.status(201).json({ message: 'Journal entry saved!', entry, pointsEarned: 15 })
+    res.status(201).json({ message: 'Journal entry saved!', entry })
   } catch (err) {
     console.error('[POST /journal]', err)
     res.status(500).json({ error: 'Could not save journal entry.' })
@@ -54,7 +49,7 @@ router.get('/', async (req, res) => {
 // PUT /api/journal/:id — update entry
 router.put('/:id', async (req, res) => {
   try {
-    const { title, content, moodLabel } = req.body
+    const { title, content, moodLabel, tags } = req.body
     // Make sure the entry belongs to this user
     const existing = await prisma.journalEntry.findFirst({
       where: { id: req.params.id, userId: req.user.id }
@@ -63,7 +58,7 @@ router.put('/:id', async (req, res) => {
 
     const entry = await prisma.journalEntry.update({
       where: { id: req.params.id },
-      data:  { title, content, moodLabel }
+      data:  { title, content, moodLabel, tags: tags || existing.tags }
     })
     res.json({ message: 'Entry updated!', entry })
   } catch (err) {

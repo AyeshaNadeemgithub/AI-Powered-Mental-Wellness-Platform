@@ -8,24 +8,29 @@ import {
   Tooltip,
 } from "recharts";
 
-const MOCK_DATA = [
-  { day: "Mon", value: 35 },
-  { day: "Tue", value: 42 },
-  { day: "Wed", value: 28 },
-  { day: "Thu", value: 55 },
-  { day: "Fri", value: 48 },
-  { day: "Sat", value: 62 },
-  { day: "Sun", value: 38 },
-];
-
 /**
- * Small red line chart for Urgent Cases mood trend.
+ * Line chart for mood trend over time.
+ * Accepts a `data` prop: [{ day: "Mon", value: 5 }]
+ * `value` is the mood score (1-7) or percentage (0-100).
+ * Falls back to empty state when no data is provided.
  */
-export default function MoodTrendChart() {
+export default function MoodTrendChart({ data = [] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div style={{
+        width: "100%", height: 80, background: "#FFF0F6", borderRadius: 8, padding: "8px 0",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: "#9896B8", fontSize: 12, fontStyle: "italic",
+      }}>
+        No trend data yet
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: "100%", height: 80, background: "#FFF0F6", borderRadius: 8, padding: "8px 0" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={MOCK_DATA} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+        <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
           <XAxis
             dataKey="day"
             tick={{ fontSize: 10, fill: "#9896B8" }}

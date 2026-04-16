@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import { colors, fonts, radius, shadows } from "../styles/theme";
+import { getMoodHistory, logMood } from "../api";
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -41,42 +42,23 @@ const MAX_MOOD_VALUE = 7;
 // Stars display indexed by mood value (0–7)
 const STARS = ["", "★", "★★", "★★★", "★★★★", "★★★★★", "★★★★★★", "★★★★★★★"];
 
-// ─── Generate mock history data ───────────────────────────────────────────────
-const generateHistory = () => {
-  const entries = [];
-  const now = new Date();
+// ─── Normalize DB log → local entry shape ────────────────────────────────────
+const MOOD_META = Object.fromEntries(MOODS.map(m => [m.label, m]));
 
-  // Full updated mood pool matching MOODS above
-  const moodPool = [
-    { emoji: "😄", label: "Joyful",  value: 7, color: "#F59E0B" },
-    { emoji: "☺️", label: "Happy",   value: 6, color: "#10B981" },
-    { emoji: "😌", label: "Calm",    value: 5, color: "#b99110ff" },
-    { emoji: "😐", label: "Neutral", value: 4, color: "#3B82F6" },
-    { emoji: "😔", label: "Sad",     value: 3, color: "#8B5CF6" },
-    { emoji: "😰", label: "Anxious", value: 2, color: "#093e30ff" },
-    { emoji: "😤", label: "Angry",   value: 1, color: "#EF4444" },
-  ];
-
-  const kwPool = [
-    "Grateful", "Peaceful", "Focused", "Tired", "Energetic",
-    "Stressed", "Hopeful", "Loved", "Creative", "Satisfied",
-    "Sleepy", "Overwhelmed", "Proud", "Lonely",
-  ];
-
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(now.getDate() - i);
-    if (i === 0) continue; // today is filled live
-    const mood = moodPool[Math.floor(Math.random() * moodPool.length)];
-    const numKw = Math.floor(Math.random() * 3) + 1;
-    const shuffled = [...kwPool].sort(() => Math.random() - 0.5);
-    const kws = shuffled.slice(0, numKw);
-    entries.push({ id: date.toISOString(), date, mood, keywords: kws, note: "" });
-  }
-  return entries;
-};
-
-const MOCK_HISTORY = generateHistory();
+const normalizeLog = (log) => ({
+  id:       log.id,
+  date:     new Date(log.loggedAt),
+  mood:     MOOD_META[log.moodLabel] || {
+    emoji: log.moodEmoji,
+    label: log.moodLabel,
+    value: log.moodScore,
+    color: "#8B5CF6",
+    bg:    "#EDE9FE",
+    border:"#C4B5FD",
+  },
+  keywords: log.moodTags?.map(mt => mt.tag.name) || [],
+  note:     log.notes || "",
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (date) =>
@@ -105,7 +87,6 @@ const MoodSelector = ({ selected, onSelect }) => (
   <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
     {MOODS.map((m) => {
       const isSelected = selected?.label === m.label;
-      // Scale 5 dots proportionally to value out of MAX_MOOD_VALUE
       const filledDots = Math.round((m.value / MAX_MOOD_VALUE) * 5);
       return (
         <button
@@ -128,7 +109,6 @@ const MoodSelector = ({ selected, onSelect }) => (
             color: isSelected ? m.color : colors.textMuted,
             letterSpacing: "0.04em",
           }}>{m.label}</span>
-          {/* 5 intensity dots, filled count scaled proportionally */}
           <div style={{ display: "flex", gap: 3 }}>
             {[1, 2, 3, 4, 5].map(dot => (
               <div key={dot} style={{
@@ -188,7 +168,6 @@ const WeekBar = ({ entries }) => {
     <div style={{ display: "flex", gap: 8, alignItems: "flex-end", height: 110 }}>
       {days.map(({ d, entry }, i) => {
         const val = entry ? entry.mood.value : 0;
-        // Bar height scaled against MAX_MOOD_VALUE (7)
         const pct = (val / MAX_MOOD_VALUE) * 100;
         const col = entry ? entry.mood.color : colors.border;
         const isToday = d.toDateString() === now.toDateString();
@@ -301,7 +280,6 @@ const HistoryList = ({ entries, limit }) => {
               <span style={{ fontFamily: fonts.display, fontSize: 13, fontWeight: 700, color: colors.text }}>
                 {e.mood.label}
               </span>
-              {/* Stars safely indexed by value up to 7 */}
               <span style={{
                 fontSize: 10, fontFamily: fonts.body, fontWeight: 700,
                 color: e.mood.color, background: `${e.mood.color}15`,
@@ -333,7 +311,6 @@ const HistoryList = ({ entries, limit }) => {
 // ─── Stats Row ────────────────────────────────────────────────────────────────
 const StatsRow = ({ entries }) => {
   const total = entries.length;
-  // Avg now out of MAX_MOOD_VALUE (7)
   const avg = total > 0
     ? (entries.reduce((s, e) => s + e.mood.value, 0) / total).toFixed(1)
     : "—";
@@ -383,8 +360,25 @@ const MoodTracking = () => {
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [note, setNote]                         = useState("");
   const [saved, setSaved]                       = useState(false);
-  const [history, setHistory]                   = useState(MOCK_HISTORY);
+  const [saving, setSaving]                     = useState(false);
+  const [history, setHistory]                   = useState([]);
+  const [loading, setLoading]                   = useState(true);
+  const [error, setError]                       = useState(null);
   const [historyTab, setHistoryTab]             = useState("week");
+
+  // ── Fetch mood history on mount ─────────────────────────────────────────────
+  useEffect(() => {
+    getMoodHistory()
+      .then(res => {
+        if (res.logs) {
+          setHistory(res.logs.map(normalizeLog));
+        } else {
+          setError(res.error || "Could not load mood history.");
+        }
+      })
+      .catch(() => setError("Could not connect to server."))
+      .finally(() => setLoading(false));
+  }, []);
 
   const toggleKeyword = (k) => {
     setSelectedKeywords(prev =>
@@ -392,21 +386,32 @@ const MoodTracking = () => {
     );
   };
 
-  const handleSave = () => {
-    if (!selectedMood) return;
-    const entry = {
-      id: Date.now().toString(),
-      date: new Date(),
-      mood: selectedMood,
-      keywords: selectedKeywords,
-      note,
-    };
-    setHistory(prev => [entry, ...prev]);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-    setSelectedMood(null);
-    setSelectedKeywords([]);
-    setNote("");
+  const handleSave = async () => {
+    if (!selectedMood || saving) return;
+    setSaving(true);
+    try {
+      const res = await logMood({
+        moodScore:  selectedMood.value,
+        moodLabel:  selectedMood.label,
+        moodEmoji:  selectedMood.emoji,
+        tags:       KEYWORDS.filter(k => selectedKeywords.includes(k.label)),
+        notes:      note || null,
+      });
+      if (res.error) throw new Error(res.error);
+      const newEntry = normalizeLog(res.moodLog);
+      setHistory(prev => [newEntry, ...prev]);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+      setSelectedMood(null);
+      setSelectedKeywords([]);
+      setNote("");
+    } catch (err) {
+      console.error("[handleSave mood]", err);
+      setError("Could not save mood. Please try again.");
+      setTimeout(() => setError(null), 4000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const allEntries  = useMemo(() => [...history], [history]);
@@ -428,6 +433,15 @@ const MoodTracking = () => {
 
   return (
     <div className="page-enter">
+
+      {/* ── Error Banner ── */}
+      {error && (
+        <div style={{
+          background: "#FEF2F2", border: "1px solid #FCA5A5",
+          borderRadius: radius.md, padding: "12px 18px", marginBottom: 16,
+          fontFamily: fonts.body, fontSize: 13, color: "#EF4444", fontWeight: 700,
+        }}>⚠️ {error}</div>
+      )}
 
       {/* ── Page Header ── */}
       <div style={{
@@ -453,7 +467,23 @@ const MoodTracking = () => {
       </div>
 
       {/* ── Stats ── */}
-      <StatsRow entries={allEntries} />
+      {loading ? (
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24,
+        }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{
+              background: "#fff", borderRadius: radius.lg,
+              border: `1.5px solid ${colors.border}`,
+              padding: "18px 20px", boxShadow: shadows.card,
+              height: 90, animation: "pulse 1.5s ease-in-out infinite",
+              background: "linear-gradient(90deg, #f3f3f3 25%, #e8e8e8 50%, #f3f3f3 75%)",
+            }} />
+          ))}
+        </div>
+      ) : (
+        <StatsRow entries={allEntries} />
+      )}
 
       {/* ── Log Today's Mood ── */}
       <Card style={{ marginBottom: 24 }}>
@@ -498,13 +528,15 @@ const MoodTracking = () => {
             </div>
 
             <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 14 }}>
-              <Button onClick={handleSave} size="md">Save Today's Mood ✓</Button>
+              <Button onClick={handleSave} size="md" disabled={saving}>
+                {saving ? "Saving…" : "Save Today's Mood ✓"}
+              </Button>
               {saved && (
                 <div style={{
                   display: "flex", alignItems: "center", gap: 6,
                   fontSize: 13, fontFamily: fonts.body, fontWeight: 700, color: colors.green,
                 }}>
-                  <span style={{ fontSize: 16 }}>✅</span> Mood logged successfully!
+                  <span style={{ fontSize: 16 }}>✅</span> Mood logged successfully! +10 pts
                 </div>
               )}
             </div>
@@ -558,7 +590,11 @@ const MoodTracking = () => {
             </div>
           </div>
 
-          {displayEntries.length === 0 ? (
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "40px 0", color: colors.textMuted, fontFamily: fonts.body, fontSize: 13 }}>
+              Loading your mood history… 🌿
+            </div>
+          ) : displayEntries.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 0", color: colors.textMuted, fontFamily: fonts.body, fontSize: 13 }}>
               No entries yet for this period.<br />
               <span style={{ fontSize: 28, display: "block", marginTop: 8 }}>📭</span>

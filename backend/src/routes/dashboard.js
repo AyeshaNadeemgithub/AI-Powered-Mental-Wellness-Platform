@@ -2,33 +2,28 @@ const express = require('express')
 const router  = express.Router()
 const prisma  = require('../lib/prisma')
 const { protect } = require('../middleware/auth')
+const { getUserStats } = require('../utils/gamification')
 
 router.use(protect)
 
 // GET /api/dashboard
-// Returns everything the Dashboard.jsx needs in a single call:
-// streak, total points, recent mood logs, upcoming appointments, badges, notifications
 router.get('/', async (req, res) => {
   try {
     const userId = req.user.id
 
-    // Streak
-    const streak = await calculateStreak(userId)
-
-    // Total points
-    const pointsResult = await prisma.reward.aggregate({
-      where: { userId },
-      _sum:  { pointsEarned: true }
+    // Use centralized stats (streak, totalPoints, etc)
+    const stats = await getUserStats(userId).catch(err => {
+      console.error('Stats fetch failed:', err)
+      return { streak: 0, totalPoints: 0, moodLogs: 0 }
     })
-    const totalPoints = pointsResult._sum.pointsEarned || 0
 
-    // Last 7 mood logs (for the chart in Dashboard)
+    // Last 7 mood logs
     const recentMoods = await prisma.moodLog.findMany({
       where:   { userId },
       orderBy: { loggedAt: 'desc' },
       take:    7,
       include: { moodTags: { include: { tag: true } } }
-    })
+    }).catch(err => [])
 
     // Upcoming appointments
     const upcomingAppointments = await prisma.appointment.findMany({
@@ -45,56 +40,87 @@ router.get('/', async (req, res) => {
         },
         slot: true
       }
-    })
+    }).catch(err => [])
 
     // Badges earned
     const userBadges = await prisma.userBadge.findMany({
       where:   { userId },
       include: { badge: true },
       orderBy: { earnedAt: 'desc' }
-    })
+    }).catch(err => [])
 
-    // Unread notifications
+    // Notifications
     const notifications = await prisma.notification.findMany({
-      where:   { userId, isRead: false },
+      where:   { userId },
       orderBy: { createdAt: 'desc' },
-      take:    5
-    })
+      take:    20
+    }).catch(err => [])
+
+    const unreadCount = await prisma.notification.count({
+      where: { userId, isRead: false }
+    }).catch(err => 0)
 
     res.json({
-      streak,
-      totalPoints,
+      streak: stats.streak || 0,
+      totalPoints: stats.totalPoints || 0,
       recentMoods,
       upcomingAppointments,
       userBadges,
       notifications,
-      unreadCount: notifications.length
+      unreadCount
     })
 
   } catch (err) {
-    console.error('[GET /dashboard]', err)
-    res.status(500).json({ error: 'Could not load dashboard data.' })
+    console.error('[GET /dashboard] Full Error:', err)
+    res.status(500).json({ error: 'Could not load dashboard data.', details: err.message })
   }
 })
 
-async function calculateStreak(userId) {
-  const logs = await prisma.reward.findMany({
-    where:   { userId, actionType: 'MOOD_LOG' },
-    orderBy: { earnedAt: 'desc' },
-    select:  { earnedAt: true }
-  })
-  if (logs.length === 0) return 0
-  let streak = 0
-  let currentDate = new Date()
-  currentDate.setHours(0, 0, 0, 0)
-  for (const log of logs) {
-    const logDate = new Date(log.earnedAt)
-    logDate.setHours(0, 0, 0, 0)
-    const diff = Math.round((currentDate - logDate) / (1000 * 60 * 60 * 24))
-    if (diff === 0 || diff === 1) { streak++; currentDate = logDate }
-    else break
+// ... (remaining Mark Read / Clear All / notifications routes)
+
+// PUT /api/dashboard/notifications/mark-read
+router.put('/notifications/mark-read', async (req, res) => {
+  try {
+    const prisma = require('../lib/prisma')
+    await prisma.notification.updateMany({
+      where: { userId: req.user.id, isRead: false },
+      data:  { isRead: true, readAt: new Date() }
+    })
+    res.json({ message: 'Notifications marked as read.' })
+  } catch (err) {
+    res.status(500).json({ error: 'Could not update notifications.' })
   }
-  return streak
-}
+})
+
+// DELETE /api/dashboard/notifications/clear-all
+router.delete('/notifications/clear-all', async (req, res) => {
+  try {
+    const prisma = require('../lib/prisma')
+    await prisma.notification.deleteMany({
+      where: { userId: req.user.id }
+    })
+    res.json({ message: 'Notifications cleared.' })
+  } catch (err) {
+    res.status(500).json({ error: 'Could not clear notifications.' })
+  }
+})
+
+// GET /api/dashboard/notifications
+router.get('/notifications', async (req, res) => {
+  try {
+    const prisma = require('../lib/prisma')
+    const notifications = await prisma.notification.findMany({
+      where:   { userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      take:    20
+    })
+    const unreadCount = await prisma.notification.count({
+      where: { userId: req.user.id, isRead: false }
+    })
+    res.json({ notifications, unreadCount })
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch notifications.' })
+  }
+})
 
 module.exports = router

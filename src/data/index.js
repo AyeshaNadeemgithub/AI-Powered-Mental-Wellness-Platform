@@ -56,15 +56,6 @@ export const STATS = [
   { value: "180+", label: "Licensed Therapists" },
 ];
 
-// ─── MOOD CHART DATA ──────────────────────────────────────────────────────────
-export const MOOD_DATA = [
-  { label: "Happy",   val: 12 },
-  { label: "Anxious", val: 25 },
-  { label: "Anxious", val: 18 },
-  { label: "Neutral", val: 32 },
-  { label: "Neutral", val: 28 },
-];
-
 // ─── INITIAL CHAT MESSAGES ────────────────────────────────────────────────────
 export const INITIAL_MESSAGES = [
   { from: "ai",   text: "Welcome back! How are you feeling today? 💜",                                        time: "10:30 AM" },

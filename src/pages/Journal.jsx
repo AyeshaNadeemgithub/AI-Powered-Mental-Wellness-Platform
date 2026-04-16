@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { colors, fonts, radius, shadows } from "../styles/theme";
+import {
+  getJournalEntries,
+  createJournalEntry,
+  updateJournalEntry,
+  deleteJournalEntry,
+} from "../api";
 
 // ─── WARM PALETTE ─────────────────────────────────────────────────────────────
 const warm = {
@@ -24,78 +30,19 @@ const MOODS = [
 
 const TAGS = ["Gratitude 🙏", "Work 💼", "Family 👨‍👩‍👧", "Health 🌿", "Dreams 🌙", "Growth 🌱", "Reflection 🪞", "Goals 🎯", "Love 💜", "Anxiety 🌀", "Joy ✨", "Rest 😴"];
 
-// ─── SEED DATA ────────────────────────────────────────────────────────────────
-const seed = () => {
-  const now = new Date();
-  const d = (daysAgo, h = 9, m = 0) => {
-    const dt = new Date(now);
-    dt.setDate(dt.getDate() - daysAgo);
-    dt.setHours(h, m, 0, 0);
-    return dt.toISOString();
-  };
-  return [
-    {
-      id: "j1",
-      title: "A quiet morning with coffee",
-      body: "Woke up before everyone else today. Made a cup of kahwa and sat by the window watching the city slowly come alive. There's something about those first still hours that feels sacred — like the world is holding its breath.\n\nI've been thinking about how I react to stress lately. I noticed I tend to withdraw rather than reach out. My therapist mentioned this last week and I think she's right. Small steps.",
-      mood: MOODS[1],
-      tags: ["Gratitude 🙏", "Reflection 🪞"],
-      createdAt: d(0, 8, 14),
-      updatedAt: d(0, 9, 42),
-      wordCount: 81,
-    },
-    {
-      id: "j2",
-      title: "Hard day but I got through it",
-      body: "Today was genuinely rough. Back-to-back calls, a project that got delayed, and I forgot to eat lunch until 4pm. By evening I was running on empty.\n\nBut — I didn't catastrophize. I made a list, checked things off, and called Mama before bed. Small win. I'm learning that good days and bad days can coexist in the same 24 hours.",
-      mood: MOODS[3],
-      tags: ["Work 💼", "Growth 🌱"],
-      createdAt: d(1, 21, 5),
-      updatedAt: d(1, 22, 18),
-      wordCount: 77,
-    },
-    {
-      id: "j3",
-      title: "Session with Dr. Anya — breakthroughs",
-      body: "We talked about the pattern I have of minimizing my own feelings. She asked me: 'If a friend described what you went through, what would you say to them?' And I sat with that for a long time.\n\nI think I'd tell them they were strong and that their feelings were valid. Why is it so hard to say that to myself?\n\nHomework: write one kind thing about myself each night this week.",
-      mood: MOODS[2],
-      tags: ["Reflection 🪞", "Health 🌿", "Growth 🌱"],
-      createdAt: d(3, 11, 0),
-      updatedAt: d(2, 19, 33),
-      wordCount: 94,
-    },
-    {
-      id: "j4",
-      title: "Grateful for the little things",
-      body: "Today's list of gratitude:\n— The smell of rain on dry pavement\n— My nephew laughing at something silly on TV\n— A message from an old friend out of nowhere\n— Finishing a book I'd been putting off for months\n— Uninterrupted sleep for the first time this week\n\nI want to do this more often. Even on hard days there's always something.",
-      mood: MOODS[0],
-      tags: ["Gratitude 🙏", "Joy ✨"],
-      createdAt: d(5, 20, 45),
-      updatedAt: d(5, 20, 45),
-      wordCount: 68,
-    },
-    {
-      id: "j5",
-      title: "Anxiety spiral at 2am",
-      body: "Couldn't sleep. Mind racing about things I can't control — the future, other people's opinions, what-ifs that probably won't happen.\n\nI did the breathing exercise: 4 counts in, 7 hold, 8 out. It helped a little. I wrote this just to get it out of my head and onto the page. Sometimes that's enough.",
-      mood: MOODS[5],
-      tags: ["Anxiety 🌀", "Rest 😴"],
-      createdAt: d(7, 2, 11),
-      updatedAt: d(7, 2, 38),
-      wordCount: 62,
-    },
-    {
-      id: "j6",
-      title: "Big family dinner — messy but warm",
-      body: "Khala came to visit with the whole crew. Chaotic, loud, everyone talking over each other. At one point three conversations were happening simultaneously and I just looked around and felt this wave of warmth.\n\nThese are my people. Messy, complicated, loving.",
-      mood: MOODS[1],
-      tags: ["Family 👨‍👩‍👧", "Joy ✨", "Love 💜"],
-      createdAt: d(10, 19, 0),
-      updatedAt: d(10, 19, 0),
-      wordCount: 54,
-    },
-  ];
-};
+// ─── NORMALIZE DB → LOCAL SHAPE ───────────────────────────────────────────────
+const MOOD_META = Object.fromEntries(MOODS.map(m => [m.label, m]));
+
+const normalizeEntry = (e) => ({
+  id:        e.id,
+  title:     e.title || "Untitled Entry",
+  body:      e.content,
+  mood:      MOOD_META[e.moodLabel] || MOODS[3],
+  tags:      e.tags || [],
+  createdAt: e.createdAt,
+  updatedAt: e.updatedAt,
+  wordCount: wordsOf(e.content),
+});
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const fmt = (iso, mode = "full") => {
@@ -126,7 +73,7 @@ const relativeDay = (iso) => {
   return fmt(iso, "short");
 };
 
-const wordsOf = (text) => text.trim().split(/\s+/).filter(Boolean).length;
+const wordsOf = (text) => (text || "").trim().split(/\s+/).filter(Boolean).length;
 
 const avgPerMonth = (entries) => {
   if (!entries.length) return 0;
@@ -273,7 +220,7 @@ const EntryCard = ({ entry, onSelect, selected }) => {
 };
 
 // ─── EDITOR PANEL ─────────────────────────────────────────────────────────────
-const EditorPanel = ({ entry, onSave, onDelete, onClose }) => {
+const EditorPanel = ({ entry, onSave, onDelete, onClose, saving }) => {
   const [title,    setTitle]    = useState(entry ? entry.title : "");
   const [body,     setBody]     = useState(entry ? entry.body  : "");
   const [mood,     setMood]     = useState(entry ? entry.mood  : MOODS[3]);
@@ -448,22 +395,25 @@ const EditorPanel = ({ entry, onSave, onDelete, onClose }) => {
       }}>
         <button
           onClick={handleSave}
+          disabled={saving}
           style={{
             flex: 1, padding: "12px 20px", borderRadius: radius.md,
-            border: "none", cursor: "pointer",
+            border: "none", cursor: saving ? "not-allowed" : "pointer",
             background: saved
               ? "linear-gradient(135deg, #10B981, #34D399)"
               : `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})`,
             color: "#fff", fontFamily: fonts.body, fontSize: 13, fontWeight: 800,
             boxShadow: saved ? "0 4px 14px #10B98140" : shadows.purple,
             transition: "all 0.2s",
+            opacity: saving ? 0.7 : 1,
           }}
         >
-          {saved ? "✓ Saved!" : isNew ? "Save Entry ✦" : "Update Entry ✦"}
+          {saving ? "Saving…" : saved ? "✓ Saved!" : isNew ? "Save Entry ✦" : "Update Entry ✦"}
         </button>
         {!isNew && (
           <button
             onClick={() => onDelete(entry.id)}
+            disabled={saving}
             style={{
               padding: "12px 16px", borderRadius: radius.md, cursor: "pointer",
               border: "1px solid #FCA5A5", background: "#FEF2F2",
@@ -478,15 +428,32 @@ const EditorPanel = ({ entry, onSave, onDelete, onClose }) => {
 
 // ─── JOURNAL PAGE ─────────────────────────────────────────────────────────────
 const Journal = () => {
-  const [entries,     setEntries]     = useState(seed());
-  const [selected,    setSelected]    = useState(null);   // entry being viewed/edited
-  const [isNew,       setIsNew]       = useState(false);  // composing new
+  const [entries,     setEntries]     = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [saving,      setSaving]      = useState(false);
+  const [error,       setError]       = useState(null);
+  const [selected,    setSelected]    = useState(null);
+  const [isNew,       setIsNew]       = useState(false);
   const [searchQ,     setSearchQ]     = useState("");
   const [filterMood,  setFilterMood]  = useState(null);
   const [filterTag,   setFilterTag]   = useState(null);
-  const [activeView,  setActiveView]  = useState("all");  // all | month
+  const [activeView,  setActiveView]  = useState("all");
 
   const showEditor = isNew || selected !== null;
+
+  // ── Fetch entries on mount ──────────────────────────────────────────────────
+  useEffect(() => {
+    getJournalEntries()
+      .then(res => {
+        if (res.entries) {
+          setEntries(res.entries.map(normalizeEntry));
+        } else {
+          setError(res.error || "Could not load journal entries.");
+        }
+      })
+      .catch(() => setError("Could not connect to server."))
+      .finally(() => setLoading(false));
+  }, []);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const totalWords  = entries.reduce((a, e) => a + e.wordCount, 0);
@@ -515,27 +482,74 @@ const Journal = () => {
   });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  const handleSave = (updated) => {
-    setEntries(prev => {
-      const exists = prev.find(e => e.id === updated.id);
-      if (exists) return prev.map(e => e.id === updated.id ? updated : e);
-      return [updated, ...prev];
-    });
-    setSelected(updated);
-    setIsNew(false);
+  const handleSave = async (updated) => {
+    setSaving(true);
+    try {
+      let res;
+      if (isNew) {
+        res = await createJournalEntry({
+          title:     updated.title,
+          content:   updated.body,
+          moodLabel: updated.mood.label,
+          tags:      updated.tags,
+        });
+      } else {
+        res = await updateJournalEntry(selected.id, {
+          title:     updated.title,
+          content:   updated.body,
+          moodLabel: updated.mood.label,
+          tags:      updated.tags,
+        });
+      }
+      if (res.error) throw new Error(res.error);
+      const savedEntry = normalizeEntry(res.entry);
+      setEntries(prev => {
+        const exists = prev.find(e => e.id === savedEntry.id);
+        if (exists) return prev.map(e => e.id === savedEntry.id ? savedEntry : e);
+        return [savedEntry, ...prev];
+      });
+      setSelected(savedEntry);
+      setIsNew(false);
+    } catch (err) {
+      console.error("[Journal handleSave]", err);
+      setError("Could not save entry. Please try again.");
+      setTimeout(() => setError(null), 4000);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setEntries(prev => prev.filter(e => e.id !== id));
-    setSelected(null);
-    setIsNew(false);
+  const handleDelete = async (id) => {
+    setSaving(true);
+    try {
+      const res = await deleteJournalEntry(id);
+      if (res.error) throw new Error(res.error);
+      setEntries(prev => prev.filter(e => e.id !== id));
+      setSelected(null);
+      setIsNew(false);
+    } catch (err) {
+      console.error("[Journal handleDelete]", err);
+      setError("Could not delete entry. Please try again.");
+      setTimeout(() => setError(null), 4000);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const openNew = () => { setSelected(null); setIsNew(true); };
+  const openNew    = () => { setSelected(null); setIsNew(true); };
   const closeEditor = () => { setSelected(null); setIsNew(false); };
 
   return (
     <div className="page-enter">
+
+      {/* ── Error Banner ── */}
+      {error && (
+        <div style={{
+          background: "#FEF2F2", border: "1px solid #FCA5A5",
+          borderRadius: radius.md, padding: "12px 18px", marginBottom: 16,
+          fontFamily: fonts.body, fontSize: 13, color: "#EF4444", fontWeight: 700,
+        }}>⚠️ {error}</div>
+      )}
 
       {/* ── Page Header ── */}
       <div style={{
@@ -577,21 +591,21 @@ const Journal = () => {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
         {[
           {
-            icon: "📝", label: "Total Entries",      value: entries.length,
+            icon: "📝", label: "Total Entries",      value: loading ? "…" : entries.length,
             color: "#6D28D9", bg: "#F5F3FF", border: "#DDD6FE",
           },
           {
-            icon: "📊", label: "Avg Entries / Month", value: avgEntries,
+            icon: "📊", label: "Avg Entries / Month", value: loading ? "…" : avgEntries,
             color: "#0c0d0dff", bg: "#F5F7FA", border: "#C7DBFF",
           },
           {
-            icon: "✍️", label: "Total Words Written", value: totalWords.toLocaleString(),
+            icon: "✍️", label: "Total Words Written", value: loading ? "…" : totalWords.toLocaleString(),
             color: "#92400E", bg: "#FEF9EE", border: "#F5D9A8",
           },
           {
             icon: "🗓", label: "Last Entry",
-            value: lastEdited ? relativeDay(lastEdited.updatedAt) : "—",
-            sub: lastEdited ? `${fmt(lastEdited.updatedAt, "dayname")}, ${fmt(lastEdited.updatedAt, "time")}` : "",
+            value: loading ? "…" : lastEdited ? relativeDay(lastEdited.updatedAt) : "—",
+            sub: !loading && lastEdited ? `${fmt(lastEdited.updatedAt, "dayname")}, ${fmt(lastEdited.updatedAt, "time")}` : "",
             color: "#BE185D", bg: "#FFF0F6", border: "#FBCFE8",
           },
         ].map((s, i) => (
@@ -616,138 +630,149 @@ const Journal = () => {
         ))}
       </div>
 
+      {/* ── Loading state ── */}
+      {loading && (
+        <div style={{ textAlign: "center", padding: "60px 0", color: colors.textMuted, fontFamily: fonts.body }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>📔</div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Loading your journal…</div>
+        </div>
+      )}
+
       {/* ── Main layout ── */}
-      <div style={{ display: "grid", gridTemplateColumns: showEditor ? "340px 1fr" : "1fr", gap: 20, alignItems: "start" }}>
+      {!loading && (
+        <div style={{ display: "grid", gridTemplateColumns: showEditor ? "340px 1fr" : "1fr", gap: 20, alignItems: "start" }}>
 
-        {/* ── LEFT: list panel ── */}
-        <div>
-          {/* Search + filters */}
-          <div style={{
-            background: "#fff", borderRadius: radius.lg,
-            border: `1.5px solid ${colors.border}`,
-            padding: "14px 16px", marginBottom: 16,
-            boxShadow: shadows.card,
-          }}>
-            {/* Search */}
+          {/* ── LEFT: list panel ── */}
+          <div>
+            {/* Search + filters */}
             <div style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: colors.bg, borderRadius: radius.md,
-              border: `1.5px solid ${colors.border}`, padding: "9px 14px",
-              marginBottom: 12,
+              background: "#fff", borderRadius: radius.lg,
+              border: `1.5px solid ${colors.border}`,
+              padding: "14px 16px", marginBottom: 16,
+              boxShadow: shadows.card,
             }}>
-              <span style={{ fontSize: 14 }}>🔍</span>
-              <input
-                value={searchQ}
-                onChange={e => setSearchQ(e.target.value)}
-                placeholder="Search entries…"
-                style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontFamily: fonts.body, fontSize: 13, color: colors.text }}
-              />
-              {searchQ && (
-                <button onClick={() => setSearchQ("")} style={{ background: "none", border: "none", cursor: "pointer", color: colors.textMuted, fontSize: 13 }}>✕</button>
-              )}
-            </div>
-
-            {/* View toggle */}
-            <div style={{ display: "flex", gap: 4, background: colors.bg, borderRadius: radius.md, padding: 3, marginBottom: 10 }}>
-              {[["all","📋 All"], ["month","📅 By Month"]].map(([k, l]) => (
-                <button key={k} onClick={() => setActiveView(k)} style={{
-                  flex: 1, padding: "7px 10px", borderRadius: 8, border: "none",
-                  background: activeView === k ? `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})` : "transparent",
-                  color: activeView === k ? "#fff" : colors.textMuted,
-                  fontFamily: fonts.body, fontSize: 11, fontWeight: 800, cursor: "pointer",
-                  transition: "all 0.18s",
-                  boxShadow: activeView === k ? shadows.purple : "none",
-                }}>{l}</button>
-              ))}
-            </div>
-
-            {/* Mood filter chips */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <button
-                onClick={() => setFilterMood(null)}
-                style={{
-                  padding: "4px 10px", borderRadius: radius.full, cursor: "pointer",
-                  border: !filterMood ? `1.5px solid ${colors.purple}` : `1px solid ${colors.border}`,
-                  background: !filterMood ? colors.purpleSoft : warm.cream,
-                  fontFamily: fonts.body, fontSize: 10, fontWeight: 800,
-                  color: !filterMood ? colors.purple : colors.textMuted,
-                }}>All</button>
-              {MOODS.map(m => (
-                <button key={m.label} onClick={() => setFilterMood(filterMood === m.label ? null : m.label)} style={{
-                  padding: "4px 10px", borderRadius: radius.full, cursor: "pointer",
-                  border: filterMood === m.label ? `1.5px solid ${m.color}` : `1px solid ${colors.border}`,
-                  background: filterMood === m.label ? m.bg : warm.cream,
-                  fontFamily: fonts.body, fontSize: 10, fontWeight: 800,
-                  color: filterMood === m.label ? m.color : colors.textMuted,
-                  transition: "all 0.15s",
-                }}>{m.emoji}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* Entry count */}
-          <div style={{ fontSize: 11, fontFamily: fonts.body, fontWeight: 700, color: colors.textMuted, marginBottom: 10, paddingLeft: 2 }}>
-            {filtered.length} entr{filtered.length !== 1 ? "ies" : "y"} {searchQ || filterMood || filterTag ? "(filtered)" : ""}
-          </div>
-
-          {/* Entries list */}
-          <div style={{ maxHeight: "calc(100vh - 380px)", overflowY: "auto", paddingRight: 4 }}>
-            {filtered.length === 0 && (
-              <div style={{ textAlign: "center", padding: "40px 20px", color: colors.textMuted, fontFamily: fonts.body }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🔍</div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>No entries found.</div>
+              {/* Search */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: colors.bg, borderRadius: radius.md,
+                border: `1.5px solid ${colors.border}`, padding: "9px 14px",
+                marginBottom: 12,
+              }}>
+                <span style={{ fontSize: 14 }}>🔍</span>
+                <input
+                  value={searchQ}
+                  onChange={e => setSearchQ(e.target.value)}
+                  placeholder="Search entries…"
+                  style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontFamily: fonts.body, fontSize: 13, color: colors.text }}
+                />
+                {searchQ && (
+                  <button onClick={() => setSearchQ("")} style={{ background: "none", border: "none", cursor: "pointer", color: colors.textMuted, fontSize: 13 }}>✕</button>
+                )}
               </div>
-            )}
 
-            {activeView === "all" && filtered.map(e => (
-              <EntryCard key={e.id} entry={e} onSelect={setSelected} selected={selected?.id === e.id} />
-            ))}
-
-            {activeView === "month" && Object.entries(byMonth).map(([month, list]) => (
-              <div key={month} style={{ marginBottom: 20 }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 10, marginBottom: 10,
-                }}>
-                  <span style={{
-                    fontSize: 11, fontFamily: fonts.body, fontWeight: 800,
-                    color: colors.purple, letterSpacing: "0.1em", textTransform: "uppercase",
-                  }}>{month}</span>
-                  <span style={{
-                    fontSize: 9, fontFamily: fonts.body, fontWeight: 800,
-                    color: colors.textMuted, background: colors.bg,
-                    padding: "2px 8px", borderRadius: radius.full,
-                    border: `1px solid ${colors.border}`,
-                  }}>{list.length} entries</span>
-                  <div style={{ flex: 1, height: 1, background: colors.border }} />
-                </div>
-                {list.map(e => (
-                  <EntryCard key={e.id} entry={e} onSelect={setSelected} selected={selected?.id === e.id} />
+              {/* View toggle */}
+              <div style={{ display: "flex", gap: 4, background: colors.bg, borderRadius: radius.md, padding: 3, marginBottom: 10 }}>
+                {[["all","📋 All"], ["month","📅 By Month"]].map(([k, l]) => (
+                  <button key={k} onClick={() => setActiveView(k)} style={{
+                    flex: 1, padding: "7px 10px", borderRadius: 8, border: "none",
+                    background: activeView === k ? `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})` : "transparent",
+                    color: activeView === k ? "#fff" : colors.textMuted,
+                    fontFamily: fonts.body, fontSize: 11, fontWeight: 800, cursor: "pointer",
+                    transition: "all 0.18s",
+                    boxShadow: activeView === k ? shadows.purple : "none",
+                  }}>{l}</button>
                 ))}
               </div>
-            ))}
+
+              {/* Mood filter chips */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <button
+                  onClick={() => setFilterMood(null)}
+                  style={{
+                    padding: "4px 10px", borderRadius: radius.full, cursor: "pointer",
+                    border: !filterMood ? `1.5px solid ${colors.purple}` : `1px solid ${colors.border}`,
+                    background: !filterMood ? colors.purpleSoft : warm.cream,
+                    fontFamily: fonts.body, fontSize: 10, fontWeight: 800,
+                    color: !filterMood ? colors.purple : colors.textMuted,
+                  }}>All</button>
+                {MOODS.map(m => (
+                  <button key={m.label} onClick={() => setFilterMood(filterMood === m.label ? null : m.label)} style={{
+                    padding: "4px 10px", borderRadius: radius.full, cursor: "pointer",
+                    border: filterMood === m.label ? `1.5px solid ${m.color}` : `1px solid ${colors.border}`,
+                    background: filterMood === m.label ? m.bg : warm.cream,
+                    fontFamily: fonts.body, fontSize: 10, fontWeight: 800,
+                    color: filterMood === m.label ? m.color : colors.textMuted,
+                    transition: "all 0.15s",
+                  }}>{m.emoji}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Entry count */}
+            <div style={{ fontSize: 11, fontFamily: fonts.body, fontWeight: 700, color: colors.textMuted, marginBottom: 10, paddingLeft: 2 }}>
+              {filtered.length} entr{filtered.length !== 1 ? "ies" : "y"} {searchQ || filterMood || filterTag ? "(filtered)" : ""}
+            </div>
+
+            {/* Entries list */}
+            <div style={{ maxHeight: "calc(100vh - 380px)", overflowY: "auto", paddingRight: 4 }}>
+              {filtered.length === 0 && (
+                <div style={{ textAlign: "center", padding: "40px 20px", color: colors.textMuted, fontFamily: fonts.body }}>
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>🔍</div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>No entries found.</div>
+                </div>
+              )}
+
+              {activeView === "all" && filtered.map(e => (
+                <EntryCard key={e.id} entry={e} onSelect={setSelected} selected={selected?.id === e.id} />
+              ))}
+
+              {activeView === "month" && Object.entries(byMonth).map(([month, list]) => (
+                <div key={month} style={{ marginBottom: 20 }}>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10, marginBottom: 10,
+                  }}>
+                    <span style={{
+                      fontSize: 11, fontFamily: fonts.body, fontWeight: 800,
+                      color: colors.purple, letterSpacing: "0.1em", textTransform: "uppercase",
+                    }}>{month}</span>
+                    <span style={{
+                      fontSize: 9, fontFamily: fonts.body, fontWeight: 800,
+                      color: colors.textMuted, background: colors.bg,
+                      padding: "2px 8px", borderRadius: radius.full,
+                      border: `1px solid ${colors.border}`,
+                    }}>{list.length} entries</span>
+                    <div style={{ flex: 1, height: 1, background: colors.border }} />
+                  </div>
+                  {list.map(e => (
+                    <EntryCard key={e.id} entry={e} onSelect={setSelected} selected={selected?.id === e.id} />
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* ── RIGHT: editor panel ── */}
+          {showEditor && (
+            <div style={{ position: "sticky", top: 20, height: "calc(100vh - 120px)" }}>
+              <EditorPanel
+                entry={isNew ? null : selected}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onClose={closeEditor}
+                saving={saving}
+              />
+            </div>
+          )}
+
+          {/* ── Empty state when no editor open ── */}
+          {!showEditor && entries.length > 0 && (
+            <div /> // single column, nothing extra needed
+          )}
         </div>
-
-        {/* ── RIGHT: editor panel ── */}
-        {showEditor && (
-          <div style={{ position: "sticky", top: 20, height: "calc(100vh - 120px)" }}>
-            <EditorPanel
-              entry={isNew ? null : selected}
-              onSave={handleSave}
-              onDelete={handleDelete}
-              onClose={closeEditor}
-            />
-          </div>
-        )}
-
-        {/* ── Empty state when no editor open ── */}
-        {!showEditor && entries.length > 0 && (
-          <div /> // single column, nothing extra needed
-        )}
-      </div>
+      )}
 
       {/* ── Empty state (no entries at all) ── */}
-      {entries.length === 0 && (
+      {!loading && entries.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 0" }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>📓</div>
           <div style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text, marginBottom: 8 }}>Start Your Journal</div>
