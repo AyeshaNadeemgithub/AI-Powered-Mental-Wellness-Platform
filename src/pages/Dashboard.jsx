@@ -10,7 +10,7 @@ import * as api from "../api";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const HeroBanner = () => {
+const HeroBanner = ({ firstName }) => {
   const navigate = useNavigate();
   return (
     <div style={{
@@ -30,7 +30,7 @@ const HeroBanner = () => {
           ✦ Daily Overview
         </div>
         <h2 style={{ fontFamily: fonts.display, fontSize: 32, fontWeight: 700, color: colors.text, lineHeight: 1.15, marginBottom: 8 }}>
-          Welcome Back,<br />Your Day Awaits.
+          Welcome Back,<br />{firstName ? `${firstName}!` : "Your Day Awaits."}
         </h2>
         <p style={{ fontFamily: fonts.body, fontSize: 13, color: colors.textMid, marginBottom: 20, fontWeight: 600 }}>
           Support For Today. Strength For Tomorrow.
@@ -137,7 +137,7 @@ const Dashboard = () => {
 
   return (
     <div className="page-enter">
-      <HeroBanner />
+      <HeroBanner firstName={data.firstName} />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.7fr", gap: 20, marginBottom: 20 }}>
         <StreakCard streak={data.streak} totalPoints={data.totalPoints} badges={data.userBadges} />

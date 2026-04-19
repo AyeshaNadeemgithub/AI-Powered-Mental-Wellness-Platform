@@ -62,6 +62,11 @@ export const therapistSignup = (data)                 => post('/auth/therapist-s
 export const adminSignup     = (data)                 => post('/auth/admin-signup',     data)
 export const login           = (email, password, role) => post('/auth/login', { email, password, role })
 export const getMe           = ()                     => get('/auth/me')
+export const updateProfile   = (data)                 => put('/auth/profile', data)
+export const changePassword  = (data)                 => put('/auth/change-password', data)
+export const exportMyData    = ()                     => get('/auth/export-data')
+export const deactivateAccount = ()                   => put('/auth/deactivate', {})
+export const deleteAccount   = ()                     => del('/auth/delete-account')
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 export const getDashboard            = () => get('/dashboard')

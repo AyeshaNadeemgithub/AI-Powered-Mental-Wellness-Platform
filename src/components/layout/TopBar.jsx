@@ -94,11 +94,6 @@ const TopBar = () => {
 
       <div style={{ flex: 1 }} />
 
-      <a href="#features" style={{
-        color: colors.textMid, fontFamily: fonts.body,
-        fontSize: 14, fontWeight: 700, textDecoration: "none",
-      }}>Features</a>
-
       {/* Bell / Notification Dropdown Trigger */}
       <div ref={dropdownRef} style={{ position: "relative" }}>
         <div 
@@ -181,15 +176,6 @@ const TopBar = () => {
           </div>
         )}
       </div>
-
-      {/* Search button */}
-      <button style={{
-        background: `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})`,
-        color: "#fff", fontFamily: fonts.body,
-        fontSize: 13, fontWeight: 700, padding: "9px 22px",
-        borderRadius: radius.md, border: "none", cursor: "pointer",
-        boxShadow: shadows.purple,
-      }}>Search</button>
 
       <style>{`
         @keyframes slideIn {
