@@ -2,7 +2,7 @@
 export const NAV_ITEMS = [
   { icon: "⊞",  label: "Dashboard",    path: "/dashboard" },
   { icon: "😊", label: "Mood Tracking", path: "/mood" },
-  { icon: "🔔", label: "Chat with AI",  path: "/chat",         badge: "2" },
+  { icon: "🔔", label: "Chat with AI",  path: "/chat" },
   { icon: "📓", label: "Journal",       path: "/journal" },
   { icon: "📅", label: "Appointments",  path: "/appointments" },
   { icon: "⚙️", label: "Settings",      path: "/settings" },

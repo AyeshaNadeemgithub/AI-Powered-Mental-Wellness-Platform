@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Button from "../components/ui/Button";
 import { colors, fonts, radius, shadows } from "../styles/theme";
+import * as api from "../api";
+import { useTheme, ACCENT_PALETTES } from "../context/ThemeContext";
 
 // ─── WARM PALETTE (matches Appointments) ─────────────────────────────────────
 const warm = {
@@ -158,14 +160,44 @@ const Settings = () => {
 
   const [activeTab, setActiveTab] = useState("profile");
   const [saved, setSaved]         = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // ── Profile state ──
-  const [name,     setName]     = useState("Anya Sharma");
-  const [email,    setEmail]    = useState("anya.sharma@email.com");
-  const [phone,    setPhone]    = useState("+1 (555) 012-3456");
-  const [bio,      setBio]      = useState("Working on my mental wellness journey, one day at a time. 🌱");
+  const [name,     setName]     = useState("");
+  const [email,    setEmail]    = useState("");
+  const [phone,    setPhone]    = useState("");
+  const [bio,      setBio]      = useState("");
   const [timezone, setTimezone] = useState("asia-karachi");
   const [language, setLanguage] = useState("en");
+
+  // Load real user data on mount
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        // Try localStorage first for instant display, then verify with API
+        const stored = api.getStoredUser();
+        if (stored) {
+          setName(`${stored.firstName} ${stored.lastName}`.trim());
+          setEmail(stored.email || "");
+          setPhone(stored.phone || "");
+        }
+        // Then fetch fresh data from backend
+        const res = await api.getMe();
+        if (res && res.user) {
+          const u = res.user;
+          setName(`${u.firstName} ${u.lastName}`.trim());
+          setEmail(u.email || "");
+          setPhone(u.phone || "");
+          setBio(u.bio || "");
+          setTimezone(u.timezone || "asia-karachi");
+          setLanguage(u.language || "en");
+        }
+      } catch (err) {
+        console.error("Could not load user profile:", err);
+      }
+    };
+    loadUser();
+  }, []);
 
   // ── Notification state ──
   const [notifs, setNotifs] = useState({
@@ -190,16 +222,14 @@ const Settings = () => {
   });
   const togglePrivacy = (key) => setPrivacy(p => ({ ...p, [key]: !p[key] }));
 
-  // ── Appearance state ──
-  const [fontSize,  setFontSize]  = useState("medium");
-  const [colorMode, setColorMode] = useState("light");
-  const [accentCol, setAccentCol] = useState("purple");
+  // ── Appearance — wired to global ThemeContext ──
+  const { colorMode, setColorMode, accentKey, setAccentKey, fontSize, setFontSize } = useTheme();
 
   const ACCENT_OPTS = [
     { key: "purple", color: "#7C3AED", label: "Violet"  },
-    { key: "brown",  color: "#B45309", label: "Amber"   },
     { key: "teal",   color: "#0E7490", label: "Teal"    },
     { key: "rose",   color: "#BE185D", label: "Rose"    },
+    { key: "amber",  color: "#B45309", label: "Amber"   },
     { key: "indigo", color: "#3730A3", label: "Indigo"  },
   ];
 
@@ -207,10 +237,105 @@ const Settings = () => {
   const [currentPw, setCurrentPw] = useState("");
   const [newPw,     setNewPw]     = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+  const [pwError,   setPwError]   = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
+  const [dangerConfirm, setDangerConfirm] = useState("");
+  const [sessions, setSessions] = useState([
+    { id: "s1", device: "MacBook Pro", location: "Karachi, PK", time: "Now",       icon: "💻", active: true  },
+    { id: "s2", device: "iPhone 15",   location: "Karachi, PK", time: "2 hrs ago", icon: "📱", active: false },
+    { id: "s3", device: "Chrome Web",  location: "Lahore, PK",  time: "Yesterday", icon: "🌐", active: false },
+  ]);
+  const fileInputRef = useRef(null);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setSaveError("");
+    try {
+      const res = await api.updateProfile({ fullName: name, phone, bio, timezone, language });
+      if (res.error) {
+        setSaveError(res.error);
+        return;
+      }
+      // Update localStorage so sidebar reflects the new name immediately
+      if (res.user) {
+        const stored = api.getStoredUser();
+        localStorage.setItem("calmmind_user", JSON.stringify({ ...stored, ...res.user }));
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setSaveError("Could not save changes. Please try again.");
+    }
+  };
+
+  // Appearance save — theme is already live via context, just show confirmation toast
+  const handleSaveAppearance = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleChangePassword = async () => {
+    setPwError(""); setPwSuccess("");
+    if (!currentPw || !newPw || !confirmPw)
+      return setPwError("Please fill in all password fields.");
+    if (newPw !== confirmPw)
+      return setPwError("New passwords do not match.");
+    if (newPw.length < 8)
+      return setPwError("New password must be at least 8 characters.");
+    try {
+      const res = await api.changePassword({ currentPassword: currentPw, newPassword: newPw });
+      if (res.error) return setPwError(res.error);
+      setPwSuccess("Password updated successfully! ✅");
+      setCurrentPw(""); setNewPw(""); setConfirmPw("");
+      setTimeout(() => setPwSuccess(""), 3000);
+    } catch {
+      setPwError("Could not update password. Please try again.");
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const token = localStorage.getItem("calmmind_token");
+      const res = await fetch("http://localhost:5000/api/auth/export-data", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url; a.download = "calmmind-data-export.json";
+      a.click(); URL.revokeObjectURL(url);
+    } catch {
+      alert("Could not export data. Please try again.");
+    }
+  };
+
+  const handleDangerAction = async (action) => {
+    if (dangerConfirm !== action) {
+      setDangerConfirm(action); // first click — ask for confirmation
+      return;
+    }
+    // Second click — confirmed, proceed
+    setDangerConfirm("");
+    try {
+      if (action === "deactivate") {
+        await api.deactivateAccount();
+        api.clearSession();
+        window.location.href = "/login";
+      } else if (action === "delete") {
+        await api.deleteAccount();
+        api.clearSession();
+        window.location.href = "/";
+      }
+    } catch {
+      alert("Action failed. Please try again.");
+    }
+  };
+
+  const handleUploadPhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // In a full implementation this would upload to storage and update avatarUrl.
+    // For now we show a local preview using FileReader.
+    alert(`Photo "${file.name}" selected. Connect a file storage service (e.g. Cloudinary, S3) to enable uploads.`);
   };
 
   return (
@@ -248,6 +373,17 @@ const Settings = () => {
           display: "flex", alignItems: "center", gap: 8,
         }}>
           ✅ Changes saved successfully!
+        </div>
+      )}
+
+      {saveError && (
+        <div style={{
+          marginBottom: 20, padding: "13px 20px", borderRadius: radius.md,
+          background: "#FEF2F2", border: "1.5px solid #FCA5A5",
+          fontFamily: fonts.body, fontSize: 13, fontWeight: 700, color: "#DC2626",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          ❌ {saveError}
         </div>
       )}
 
@@ -300,14 +436,21 @@ const Settings = () => {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 28, color: "#fff", fontWeight: 800, fontFamily: fonts.body,
                     boxShadow: shadows.purple, flexShrink: 0,
-                  }}>A</div>
+                  }}>{name.charAt(0).toUpperCase() || "?"}</div>
                   <div>
                     <div style={{ fontFamily: fonts.display, fontSize: 16, fontWeight: 700, color: colors.text, marginBottom: 4 }}>
                       {name}
                     </div>
                     <div style={{ fontSize: 12, color: colors.textMuted, fontFamily: fonts.body, marginBottom: 12 }}>Patient · Member since Jan 2024</div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <Button size="sm" variant="secondary">Upload Photo</Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={handleUploadPhoto}
+                      />
+                      <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()}>Upload Photo</Button>
                       <Button size="sm" variant="ghost">Remove</Button>
                     </div>
                   </div>
@@ -421,8 +564,8 @@ const Settings = () => {
                   You can request a full export of your data including mood logs, journal entries, and session history.
                 </p>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <Button variant="secondary" size="sm">📥 Export My Data</Button>
-                  <Button variant="ghost" size="sm">🗑 Request Deletion</Button>
+                  <Button variant="secondary" size="sm" onClick={handleExportData}>📥 Export My Data</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveTab("danger")}>🗑 Request Deletion</Button>
                 </div>
               </SettingsCard>
             </>
@@ -465,22 +608,22 @@ const Settings = () => {
                   {ACCENT_OPTS.map(a => (
                     <button
                       key={a.key}
-                      onClick={() => setAccentCol(a.key)}
+                      onClick={() => setAccentKey(a.key)}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
                         padding: "14px 18px", borderRadius: radius.md, cursor: "pointer",
-                        border: accentCol === a.key ? `2px solid ${a.color}` : `1.5px solid ${colors.border}`,
-                        background: accentCol === a.key ? `${a.color}12` : "#fff",
+                        border: accentKey === a.key ? `2px solid ${a.color}` : `1.5px solid ${colors.border}`,
+                        background: accentKey === a.key ? `${a.color}12` : "#fff",
                         transition: "all 0.18s",
-                        boxShadow: accentCol === a.key ? `0 4px 14px ${a.color}30` : "none",
+                        boxShadow: accentKey === a.key ? `0 4px 14px ${a.color}30` : "none",
                       }}
                     >
                       <div style={{
                         width: 28, height: 28, borderRadius: "50%",
                         background: a.color,
-                        boxShadow: accentCol === a.key ? `0 2px 8px ${a.color}60` : "none",
+                        boxShadow: accentKey === a.key ? `0 2px 8px ${a.color}60` : "none",
                       }} />
-                      <span style={{ fontSize: 11, fontFamily: fonts.body, fontWeight: 800, color: accentCol === a.key ? a.color : colors.textMuted }}>
+                      <span style={{ fontSize: 11, fontFamily: fonts.body, fontWeight: 800, color: accentKey === a.key ? a.color : colors.textMuted }}>
                         {a.label}
                       </span>
                     </button>
@@ -509,8 +652,11 @@ const Settings = () => {
                     </button>
                   ))}
                 </div>
-                <div style={{ marginTop: 20 }}>
-                  <Button onClick={handleSave} size="md">Save Appearance ✓</Button>
+                <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 14 }}>
+                  <Button onClick={handleSaveAppearance} size="md">Save Appearance ✓</Button>
+                  <span style={{ fontSize: 11, fontFamily: fonts.body, color: colors.textMuted, fontWeight: 600 }}>
+                    ✨ Changes apply instantly across the whole app
+                  </span>
                 </div>
               </SettingsCard>
             </>
@@ -521,23 +667,33 @@ const Settings = () => {
             <>
               <SettingsCard>
                 <SectionLabel>Change Password</SectionLabel>
+                {pwError && (
+                  <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: radius.md, background: "#FEF2F2", border: "1.5px solid #FCA5A5", fontFamily: fonts.body, fontSize: 12, fontWeight: 700, color: "#DC2626" }}>
+                    ❌ {pwError}
+                  </div>
+                )}
+                {pwSuccess && (
+                  <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: radius.md, background: "#D1FAE5", border: "1.5px solid #6EE7B7", fontFamily: fonts.body, fontSize: 12, fontWeight: 700, color: "#065F46" }}>
+                    {pwSuccess}
+                  </div>
+                )}
                 <InputField label="Current Password" value={currentPw} onChange={setCurrentPw} type="password" placeholder="••••••••" />
                 <InputField label="New Password"     value={newPw}     onChange={setNewPw}     type="password" placeholder="Min. 8 characters" />
                 <InputField label="Confirm Password" value={confirmPw} onChange={setConfirmPw} type="password" placeholder="Repeat new password" />
-                <Button onClick={handleSave} size="md">Update Password →</Button>
+                <Button onClick={handleChangePassword} size="md">Update Password →</Button>
               </SettingsCard>
 
               <SettingsCard>
                 <SectionLabel>Active Sessions</SectionLabel>
-                {[
-                  { device: "MacBook Pro", location: "Karachi, PK", time: "Now",           icon: "💻", active: true  },
-                  { device: "iPhone 15",   location: "Karachi, PK", time: "2 hrs ago",     icon: "📱", active: false },
-                  { device: "Chrome Web",  location: "Lahore, PK",  time: "Yesterday",     icon: "🌐", active: false },
-                ].map((s, i) => (
-                  <div key={i} style={{
+                {sessions.length === 0 ? (
+                  <div style={{ fontFamily: fonts.body, fontSize: 13, color: colors.textMuted, padding: "12px 0" }}>
+                    No other active sessions.
+                  </div>
+                ) : sessions.map((s, i) => (
+                  <div key={s.id} style={{
                     display: "flex", alignItems: "center", gap: 14,
                     padding: "12px 0",
-                    borderBottom: i < 2 ? `1px solid ${colors.bg}` : "none",
+                    borderBottom: i < sessions.length - 1 ? `1px solid ${colors.bg}` : "none",
                   }}>
                     <div style={{
                       width: 38, height: 38, borderRadius: 10, flexShrink: 0,
@@ -562,11 +718,13 @@ const Settings = () => {
                       </div>
                     </div>
                     {!s.active && (
-                      <button style={{
-                        padding: "6px 12px", borderRadius: radius.md, cursor: "pointer",
-                        border: "1px solid #FCA5A5", background: "#FEF2F2",
-                        fontFamily: fonts.body, fontSize: 11, fontWeight: 700, color: "#EF4444",
-                      }}>Revoke</button>
+                      <button
+                        onClick={() => setSessions(prev => prev.filter(x => x.id !== s.id))}
+                        style={{
+                          padding: "6px 12px", borderRadius: radius.md, cursor: "pointer",
+                          border: "1px solid #FCA5A5", background: "#FEF2F2",
+                          fontFamily: fonts.body, fontSize: 11, fontWeight: 700, color: "#EF4444",
+                        }}>Revoke</button>
                     )}
                   </div>
                 ))}
@@ -588,24 +746,19 @@ const Settings = () => {
                   title: "Deactivate Account",
                   desc: "Temporarily disable your account. You can reactivate anytime by logging back in.",
                   btnLabel: "Deactivate Account",
+                  confirmLabel: "Confirm Deactivation",
+                  action: "deactivate",
                   btnColor: "#D97706",
                   btnBg: "#FEF3C7",
                   btnBorder: "#F5D9A8",
-                },
-                {
-                  icon: "🗃",
-                  title: "Clear All Data",
-                  desc: "Permanently delete all your mood logs, journal entries and session history. Your account stays active.",
-                  btnLabel: "Clear My Data",
-                  btnColor: "#DC2626",
-                  btnBg: "#FEF2F2",
-                  btnBorder: "#FCA5A5",
                 },
                 {
                   icon: "🗑",
                   title: "Delete Account",
                   desc: "Permanently delete your account and all associated data. This action cannot be reversed.",
                   btnLabel: "Delete My Account",
+                  confirmLabel: "Yes, Delete Forever",
+                  action: "delete",
                   btnColor: "#DC2626",
                   btnBg: "#FEF2F2",
                   btnBorder: "#FCA5A5",
@@ -615,7 +768,7 @@ const Settings = () => {
                   padding: "18px 20px", borderRadius: radius.md,
                   border: `1.5px solid ${item.btnBorder}`,
                   background: item.btnBg,
-                  marginBottom: i < 2 ? 14 : 0,
+                  marginBottom: i < 1 ? 14 : 0,
                   display: "flex", alignItems: "center", gap: 16,
                 }}>
                   <div style={{ fontSize: 28, flexShrink: 0 }}>{item.icon}</div>
@@ -626,14 +779,24 @@ const Settings = () => {
                     <div style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, lineHeight: 1.6, fontWeight: 600 }}>
                       {item.desc}
                     </div>
+                    {dangerConfirm === item.action && (
+                      <div style={{ marginTop: 8, fontSize: 12, fontFamily: fonts.body, fontWeight: 700, color: item.btnColor }}>
+                        ⚠️ Click again to confirm. This cannot be undone.
+                      </div>
+                    )}
                   </div>
-                  <button style={{
-                    padding: "9px 16px", borderRadius: radius.md, cursor: "pointer", flexShrink: 0,
-                    border: `1.5px solid ${item.btnBorder}`, background: "#fff",
-                    fontFamily: fonts.body, fontSize: 12, fontWeight: 800, color: item.btnColor,
-                    transition: "all 0.18s",
-                  }}>
-                    {item.btnLabel}
+                  <button
+                    onClick={() => handleDangerAction(item.action)}
+                    style={{
+                      padding: "9px 16px", borderRadius: radius.md, cursor: "pointer", flexShrink: 0,
+                      border: `1.5px solid ${item.btnBorder}`,
+                      background: dangerConfirm === item.action ? item.btnColor : "#fff",
+                      fontFamily: fonts.body, fontSize: 12, fontWeight: 800,
+                      color: dangerConfirm === item.action ? "#fff" : item.btnColor,
+                      transition: "all 0.18s",
+                    }}
+                  >
+                    {dangerConfirm === item.action ? item.confirmLabel : item.btnLabel}
                   </button>
                 </div>
               ))}

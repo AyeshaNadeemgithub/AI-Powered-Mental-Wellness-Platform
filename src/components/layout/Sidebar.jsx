@@ -2,9 +2,14 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Logo } from "../ui/Brand";
 import { colors, fonts, radius } from "../../styles/theme";
 import { NAV_ITEMS } from "../../data";
+import { getStoredUser } from "../../api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const user = getStoredUser();
+  const fullName   = user ? `${user.firstName} ${user.lastName}`.trim() : "Guest";
+  const role       = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : "Patient";
+  const avatarChar = user?.firstName ? user.firstName.charAt(0).toUpperCase() : "?";
 
   return (
     <aside style={{
@@ -76,10 +81,10 @@ const Sidebar = () => {
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 15, color: "#fff", fontWeight: 700, fontFamily: fonts.body,
           flexShrink: 0,
-        }}>A</div>
+        }}>{avatarChar}</div>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: colors.text, fontFamily: fonts.body }}>Anya Sharma</div>
-          <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: fonts.body }}>Patient</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: colors.text, fontFamily: fonts.body }}>{fullName}</div>
+          <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: fonts.body }}>{role}</div>
         </div>
       </div>
     </aside>

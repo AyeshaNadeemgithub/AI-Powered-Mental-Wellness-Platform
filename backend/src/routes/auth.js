@@ -386,4 +386,133 @@ async function calculateStreak(userId) {
   return streak
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/auth/profile  — protected
+// Updates the logged-in user's profile (name, phone, bio, timezone, language)
+// ─────────────────────────────────────────────────────────────────────────────
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const { fullName, phone, bio, timezone, language } = req.body
+
+    const updateData = {}
+
+    if (fullName) {
+      const parts = fullName.trim().split(' ')
+      updateData.firstName = parts[0]
+      updateData.lastName  = parts.slice(1).join(' ') || '-'
+    }
+    if (phone    !== undefined) updateData.phone    = phone
+    if (bio      !== undefined) updateData.bio      = bio
+    if (timezone !== undefined) updateData.timezone = timezone
+    if (language !== undefined) updateData.language = language
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data:  updateData,
+      select: {
+        id: true, firstName: true, lastName: true,
+        email: true, phone: true, role: true, avatarUrl: true,
+      }
+    })
+
+    // Refresh localStorage-friendly user object in response
+    res.json({ message: 'Profile updated successfully.', user: updatedUser })
+  } catch (err) {
+    console.error('[PUT /auth/profile]', err)
+    res.status(500).json({ error: 'Could not update profile.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/auth/change-password  — protected
+// ─────────────────────────────────────────────────────────────────────────────
+router.put('/change-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ error: 'Both current and new password are required.' })
+    if (newPassword.length < 8)
+      return res.status(400).json({ error: 'New password must be at least 8 characters.' })
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash)
+    if (!valid) return res.status(401).json({ error: 'Current password is incorrect.' })
+
+    const passwordHash = await bcrypt.hash(newPassword, 12)
+    await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash } })
+    res.json({ message: 'Password updated successfully.' })
+  } catch (err) {
+    console.error('[PUT /auth/change-password]', err)
+    res.status(500).json({ error: 'Could not update password.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/auth/export-data  — protected
+// Returns all user data as a JSON download
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/export-data', protect, async (req, res) => {
+  try {
+    const userId = req.user.id
+    const [user, moodLogs, journalEntries, appointments, rewards, badges] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true, email: true, phone: true, createdAt: true }
+      }),
+      prisma.moodLog.findMany({ where: { userId }, orderBy: { loggedAt: 'desc' } }),
+      prisma.journalEntry.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
+      prisma.appointment.findMany({ where: { patientId: userId }, orderBy: { scheduledAt: 'desc' } }),
+      prisma.reward.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
+      prisma.userBadge.findMany({ where: { userId }, include: { badge: true } }),
+    ])
+
+    const exportData = { exportedAt: new Date(), user, moodLogs, journalEntries, appointments, rewards, badges }
+    res.setHeader('Content-Disposition', 'attachment; filename="calmmind-data-export.json"')
+    res.setHeader('Content-Type', 'application/json')
+    res.json(exportData)
+  } catch (err) {
+    console.error('[GET /auth/export-data]', err)
+    res.status(500).json({ error: 'Could not export data.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/auth/deactivate  — protected
+// Marks account as inactive (soft disable)
+// ─────────────────────────────────────────────────────────────────────────────
+router.put('/deactivate', protect, async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data:  { isActive: false }
+    })
+    res.json({ message: 'Account deactivated. You can reactivate by logging in again.' })
+  } catch (err) {
+    console.error('[PUT /auth/deactivate]', err)
+    res.status(500).json({ error: 'Could not deactivate account.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /api/auth/delete-account  — protected
+// Permanently deletes the user account and all data
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete('/delete-account', protect, async (req, res) => {
+  try {
+    const userId = req.user.id
+    // Delete all related records first (cascade-safe order)
+    await prisma.notification.deleteMany({ where: { userId } })
+    await prisma.reward.deleteMany({ where: { userId } })
+    await prisma.userBadge.deleteMany({ where: { userId } })
+    await prisma.moodLog.deleteMany({ where: { userId } })
+    await prisma.journalEntry.deleteMany({ where: { userId } })
+    await prisma.appointment.deleteMany({ where: { patientId: userId } })
+    await prisma.user.delete({ where: { id: userId } })
+    res.json({ message: 'Account permanently deleted.' })
+  } catch (err) {
+    console.error('[DELETE /auth/delete-account]', err)
+    res.status(500).json({ error: 'Could not delete account.' })
+  }
+})
+
 module.exports = router

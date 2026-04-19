@@ -42,6 +42,11 @@ router.get('/', async (req, res) => {
       }
     }).catch(err => [])
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, avatarUrl: true }
+    }).catch(err => null)
+
     // Badges earned
     const userBadges = await prisma.userBadge.findMany({
       where:   { userId },
@@ -63,6 +68,8 @@ router.get('/', async (req, res) => {
     res.json({
       streak: stats.streak || 0,
       totalPoints: stats.totalPoints || 0,
+      firstName: currentUser?.firstName || '',
+      avatarUrl: currentUser?.avatarUrl || null,
       recentMoods,
       upcomingAppointments,
       userBadges,
