@@ -8,11 +8,13 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.10.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.4",
     "express": "^4.18.3",
+    "groq-sdk": "^1.1.2",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.10.0"
   },
