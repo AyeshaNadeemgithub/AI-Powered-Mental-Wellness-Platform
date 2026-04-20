@@ -40,4 +40,7 @@ const requireRole = (...roles) => (req, res, next) => {
   next()
 }
 
-module.exports = { protect, requireRole }
+// Convenience middleware for admins
+const adminOnly = requireRole('ADMIN')
+
+module.exports = { protect, requireRole, adminOnly }

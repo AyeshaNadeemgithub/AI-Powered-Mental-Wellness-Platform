@@ -160,7 +160,7 @@ export default function PatientSignup() {
         <div style={S.grid}>
           <div>
             <label style={lbl}>Full Name</label>
-            <input type="text" placeholder="Anya Sharma" value={form.fullName}
+            <input type="text" placeholder="Ali Janan" value={form.fullName}
               onChange={(e) => setField("fullName", e.target.value)} style={inp("fullName")} />
             {errors.fullName && <span style={S.err}>{errors.fullName}</span>}
           </div>
@@ -173,7 +173,7 @@ export default function PatientSignup() {
 
           <div>
             <label style={lbl}>Email Address</label>
-            <input type="email" placeholder="anya@email.com" value={form.email}
+            <input type="email" placeholder="alijanan@email.com" value={form.email}
               onChange={(e) => setField("email", e.target.value)} style={inp("email")} />
             {errors.email && <span style={S.err}>{errors.email}</span>}
           </div>

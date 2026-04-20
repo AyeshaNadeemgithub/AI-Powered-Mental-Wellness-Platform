@@ -4,10 +4,19 @@ const MoodChart = ({ data = [], width = 260, height = 90 }) => {
   const max = 35;
   const W = width, H = height;
 
-  if (!data || data.length < 2) {
+  if (!data || data.length === 0) {
     return (
       <div style={{ width: W, height: H + 22, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 11, color: colors.textMuted }}>No data yet</span>
+        <span style={{ fontSize: 11, color: colors.textMuted }}>No mood logs yet</span>
+      </div>
+    );
+  }
+
+  if (data.length === 1) {
+    return (
+      <div style={{ width: W, height: H + 22, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        <div style={{ fontSize: 24 }}>{data[0].val > 25 ? "😊" : data[0].val > 15 ? "😐" : "😔"}</div>
+        <span style={{ fontSize: 11, color: colors.textMuted }}>One entry logged. Keep going!</span>
       </div>
     );
   }

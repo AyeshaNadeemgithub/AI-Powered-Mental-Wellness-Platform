@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import * as api from "../api";
 import { useNavigate } from "react-router-dom";
 import AdminDashboardLayout from "../components/layout/AdminDashboardLayout";
 import StatCard from "../components/ui/StatCard";
@@ -15,7 +16,9 @@ const menuItems = [
   { label: "Support", key: "support", icon: "❓" },
 ];
 
-function OverviewView() {
+function OverviewView({ stats, loading }) {
+  if (loading) return <div style={{ padding: 20, color: "#9896B8" }}>Loading platform stats...</div>;
+  
   return (
     <div>
       <div
@@ -38,43 +41,42 @@ function OverviewView() {
       >
         <StatCard
           label="TOTAL USERS"
-          value="71,015"
-          subtext="+2.4% this week"
+          value={stats.totalUsers?.toLocaleString() || "0"}
+          subtext="Total registered"
           accentColor="#7C3AED"
-          subtextIcon="arrow"
         />
         <StatCard
           label="ACTIVE PATIENTS"
-          value="24"
-          subtext="Stable"
+          value={stats.activePatients?.toLocaleString() || "0"}
+          subtext="Patients"
           accentColor="#7C3AED"
-          subtextColor="#F59E0B"
         />
         <StatCard
           label="ASSIGNED THERAPISTS"
-          value="33"
-          subtext="+1 new"
+          value={stats.totalPsychologists?.toLocaleString() || "0"}
+          subtext={`${stats.approvedPsychologists || 0} approved`}
           accentColor="#7C3AED"
-          subtextIcon="arrow"
+          subtextIcon="check"
+          subtextColor="#10B981"
         />
         <StatCard
           label="MOOD LOGS"
-          value="1,526"
-          subtext="120 today"
+          value={stats.moodLogs?.toLocaleString() || "0"}
+          subtext={`${stats.moodLogsToday || 0} today`}
           accentColor="#7C3AED"
           subtextIcon="arrow"
           subtextColor="#10B981"
         />
         <StatCard
           label="REPORTED ISSUES"
-          value="2"
+          value={stats.reportedIssues || "0"}
           subtext="Needs review"
           accentColor="#7C3AED"
           subtextIcon="warning"
         />
         <StatCard
           label="PLATFORM UPTIME"
-          value="99.8%"
+          value={stats.uptime || "99.9%"}
           subtext="Healthy"
           accentColor="#7C3AED"
           subtextIcon="check"
@@ -176,42 +178,45 @@ function OverviewView() {
   );
 }
 
-function UsersView() {
+function UsersView({ users, loading }) {
+  if (loading) return <div style={{ padding: 20, color: "#9896B8" }}>Loading users...</div>;
+
   return (
     <div>
       <div style={staffStyles.pageTitle}>User Management</div>
       <CardBox>
-        <div style={staffStyles.sectionTitle}>User List</div>
+        <div style={staffStyles.sectionTitle}>User List ({users.length})</div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={staffStyles.tableHead}>
               <th style={staffStyles.tableCellLeft}>Name</th>
+              <th style={staffStyles.tableCellLeft}>Email</th>
               <th style={staffStyles.tableCellLeft}>Role</th>
               <th style={staffStyles.tableCellLeft}>Status</th>
+              <th style={staffStyles.tableCellLeft}>Joined</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style={staffStyles.tableCell}>Sarah L.</td>
-              <td style={staffStyles.tableCell}>Patient</td>
-              <td style={{ ...staffStyles.tableCell, color: "#10B981" }}>
-                Active
-              </td>
-            </tr>
-            <tr>
-              <td style={staffStyles.tableCell}>J. Chen</td>
-              <td style={staffStyles.tableCell}>Patient</td>
-              <td style={{ ...staffStyles.tableCell, color: "#F59E0B" }}>
-                Pending
-              </td>
-            </tr>
-            <tr>
-              <td style={staffStyles.tableCell}>M. Davies</td>
-              <td style={staffStyles.tableCell}>Therapist</td>
-              <td style={{ ...staffStyles.tableCell, color: "#10B981" }}>
-                Active
-              </td>
-            </tr>
+            {users.map(u => {
+              const statusColor = u.role === "PSYCHOLOGIST" 
+                ? (u.psychologist?.isApproved ? "#10B981" : "#F59E0B")
+                : "#10B981";
+              const statusText = u.role === "PSYCHOLOGIST"
+                ? (u.psychologist?.isApproved ? "Approved" : "Pending")
+                : "Active";
+              
+              return (
+                <tr key={u.id}>
+                  <td style={staffStyles.tableCell}>{u.firstName} {u.lastName}</td>
+                  <td style={staffStyles.tableCell}>{u.email}</td>
+                  <td style={staffStyles.tableCell}>{u.role}</td>
+                  <td style={{ ...staffStyles.tableCell, color: statusColor, fontWeight: 700 }}>
+                    {statusText}
+                  </td>
+                  <td style={staffStyles.tableCell}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </CardBox>
@@ -311,7 +316,39 @@ const views = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [active, setActive] = useState("overview");
-  const ActiveView = views[active] || OverviewView;
+  const [stats, setStats] = useState({});
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  useEffect(() => {
+    api.getAdminStats()
+      .then(data => { if (data && !data.error) setStats(data); })
+      .catch(err => console.error("Admin stats failed:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (active === "users") {
+      setUsersLoading(true);
+      api.getAllUsers()
+        .then(data => { if (Array.isArray(data)) setUsers(data); })
+        .catch(err => console.error("Users fetch failed:", err))
+        .finally(() => setUsersLoading(false));
+    }
+  }, [active]);
+
+  const views = {
+    overview: () => <OverviewView stats={stats} loading={loading} />,
+    users: () => <UsersView users={users} loading={usersLoading} />,
+    data: DataView,
+    features: FeaturesView,
+    logs: LogsView,
+    support: SupportView,
+    settings: SettingsView,
+  };
+
+  const ActiveView = views[active] || views.overview;
   const handleLogout = () => navigate("/login");
 
   return (

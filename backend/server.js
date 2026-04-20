@@ -12,11 +12,14 @@ app.use(cors({
 app.use(express.json())
 
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
-app.use('/api/auth',      require('./src/routes/auth'))
-app.use('/api/mood',      require('./src/routes/mood'))
-app.use('/api/journal',   require('./src/routes/journal'))
-app.use('/api/chat',      require('./src/routes/chat'))
-app.use('/api/dashboard', require('./src/routes/dashboard'))
+app.use('/api/auth',                    require('./src/routes/auth'))
+app.use('/api/mood',                    require('./src/routes/mood'))
+app.use('/api/journal',                 require('./src/routes/journal'))
+app.use('/api/chat',                    require('./src/routes/chat'))
+app.use('/api/dashboard',               require('./src/routes/dashboard'))
+app.use('/api/appointments',            require('./src/routes/appointments'))
+app.use('/api/psychologist-dashboard',  require('./src/routes/psychologist-dashboard'))
+app.use('/api/admin',                   require('./src/routes/admin'))
 
 // ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -36,6 +39,11 @@ app.get('/', (req, res) => {
       'GET  /api/dashboard',
       'POST /api/chat/session',
       'POST /api/chat/message',
+      'GET  /api/appointments/psychologists',
+      'POST /api/appointments',
+      'GET  /api/appointments',
+      'PUT  /api/appointments/:id/cancel',
+      'GET  /api/psychologist-dashboard',
     ]
   })
 })

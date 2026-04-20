@@ -412,8 +412,17 @@ router.put('/profile', protect, async (req, res) => {
       select: {
         id: true, firstName: true, lastName: true,
         email: true, phone: true, role: true, avatarUrl: true,
+        psychologist: true,
       }
     })
+
+    // If psychologist, update specialization if provided
+    if (req.user.role === 'PSYCHOLOGIST' && req.body.specialization) {
+      await prisma.psychologist.update({
+        where: { userId: req.user.id },
+        data: { specialization: req.body.specialization }
+      })
+    }
 
     // Refresh localStorage-friendly user object in response
     res.json({ message: 'Profile updated successfully.', user: updatedUser })

@@ -169,6 +169,12 @@ const Settings = () => {
   const [bio,      setBio]      = useState("");
   const [timezone, setTimezone] = useState("asia-karachi");
   const [language, setLanguage] = useState("en");
+  const [specialization, setSpecialization] = useState("");
+
+  const SPECIALIZATIONS = [
+    "Anxiety", "Depression", "Trauma", "Relationships",
+    "Mindfulness", "OCD", "ADHD", "Sleep", "Stress"
+  ];
 
   // Load real user data on mount
   useEffect(() => {
@@ -189,9 +195,12 @@ const Settings = () => {
           setEmail(u.email || "");
           setPhone(u.phone || "");
           setBio(u.bio || "");
-          setTimezone(u.timezone || "asia-karachi");
-          setLanguage(u.language || "en");
-        }
+           setTimezone(u.timezone || "asia-karachi");
+           setLanguage(u.language || "en");
+           if (u.psychologist) {
+             setSpecialization(u.psychologist.specialization || "");
+           }
+         }
       } catch (err) {
         console.error("Could not load user profile:", err);
       }
@@ -250,7 +259,7 @@ const Settings = () => {
   const handleSave = async () => {
     setSaveError("");
     try {
-      const res = await api.updateProfile({ fullName: name, phone, bio, timezone, language });
+      const res = await api.updateProfile({ fullName: name, phone, bio, timezone, language, specialization });
       if (res.error) {
         setSaveError(res.error);
         return;
@@ -441,7 +450,9 @@ const Settings = () => {
                     <div style={{ fontFamily: fonts.display, fontSize: 16, fontWeight: 700, color: colors.text, marginBottom: 4 }}>
                       {name}
                     </div>
-                    <div style={{ fontSize: 12, color: colors.textMuted, fontFamily: fonts.body, marginBottom: 12 }}>Patient · Member since Jan 2024</div>
+                    <div style={{ fontSize: 12, color: colors.textMuted, fontFamily: fonts.body, marginBottom: 12 }}>
+                      {api.getStoredUser()?.role === "PSYCHOLOGIST" ? "Psychologist" : api.getStoredUser()?.role === "ADMIN" ? "Admin" : "Patient"} · Member since Jan 2024
+                    </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       <input
                         ref={fileInputRef}
@@ -507,6 +518,17 @@ const Settings = () => {
                       { value: "ur", label: "Urdu"     },
                     ]}
                   />
+                  {api.getStoredUser()?.role === "PSYCHOLOGIST" && (
+                    <SelectField
+                      label="Specialization"
+                      value={specialization}
+                      onChange={setSpecialization}
+                      options={[
+                        { value: "", label: "Select Specialization" },
+                        ...SPECIALIZATIONS.map(s => ({ value: s, label: s }))
+                      ]}
+                    />
+                  )}
                 </div>
                 <Button onClick={handleSave} size="md">Save Changes ✓</Button>
               </SettingsCard>

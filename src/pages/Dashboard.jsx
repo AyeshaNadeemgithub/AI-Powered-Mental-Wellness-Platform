@@ -147,7 +147,10 @@ const Dashboard = () => {
               Past 7 Days Mood Trend
             </div>
           </div>
-          <MoodChart />
+          <MoodChart data={data.recentMoods?.map(m => ({
+            val: m.moodScore * 5, // scale 1-7 to ~35
+            label: new Date(m.loggedAt).toLocaleDateString("en-US", { weekday: "short" })
+          })).reverse() || []} />
         </Card>
       </div>
 

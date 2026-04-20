@@ -10,9 +10,8 @@ const colors = {
 };
 
 const specializations = [
-  "Clinical Psychology", "Cognitive Behavioral Therapy", "Child & Teen Psychology",
-  "Mindfulness & Meditation", "Trauma Therapy", "Couples Therapy",
-  "Psychiatry", "Behavioral Therapy", "Grief Counseling", "Addiction Counseling",
+  "Anxiety", "Depression", "Trauma", "Relationships",
+  "Mindfulness", "OCD", "ADHD", "Sleep", "Stress",
 ];
 
 export default function TherapistSignup() {

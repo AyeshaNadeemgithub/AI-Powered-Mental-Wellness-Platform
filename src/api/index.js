@@ -89,3 +89,14 @@ export const startChatSession = ()                      => post('/chat/session',
 export const sendChatMessage  = (sessionId, content)    => post('/chat/message',  { sessionId, content }, true)
 export const getChatSessions  = ()                      => get('/chat/sessions')
 export const getChatMessages  = (sessionId)             => get(`/chat/session/${sessionId}/messages`)
+
+// ─── APPOINTMENTS & PSYCHOLOGISTS ─────────────────────────────────────────────
+export const getPsychologists          = ()     => get('/appointments/psychologists')
+export const bookAppointment           = (data) => post('/appointments', data, true)
+export const getAppointments           = ()     => get('/appointments')
+export const cancelAppointment         = (id)   => put(`/appointments/${id}/cancel`, {})
+
+// ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
+export const getAdminStats  = () => get('/admin/stats')
+export const getAllUsers    = () => get('/admin/users')
+export const getPsychologistDashboard  = ()     => get('/psychologist-dashboard')
