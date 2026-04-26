@@ -46,7 +46,7 @@ router.get('/psychologists', async (req, res) => {
 
       return {
         id: p.id,
-        name: ` ${p.user.firstName} ${p.user.lastName}`,
+        name: `${p.user.firstName} ${p.user.lastName}`,
         title: p.specialization,
         specialties: p.specialization.split(',').map(s => s.trim()),
         rating: p.avgRating,
@@ -56,7 +56,7 @@ router.get('/psychologists', async (req, res) => {
         avatarGradient: `linear-gradient(135deg, ${accentColor}, ${accentColor}AA)`,
         available: true,
         nextSlot: 'Available',
-        price: `$${Number(p.hourlyRate) || 50} / session`,
+        price: `PKR ${(Number(p.hourlyRate) || 5000)} / session`,
         badge: p.avgRating >= 4.5 ? 'Top Rated' : 'Available',
         badgeVariant: p.avgRating >= 4.5 ? 'gold' : 'green',
         about: p.bio || `Licensed ${p.specialization} specialist providing compassionate, evidence-based care.`,

@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Logo } from "../ui/Brand";
 import { colors, fonts, radius } from "../../styles/theme";
 import { NAV_ITEMS } from "../../data";
-import { getStoredUser } from "../../api";
+import { getStoredUser, clearSession } from "../../api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -10,6 +10,11 @@ const Sidebar = () => {
   const fullName   = user ? `${user.firstName} ${user.lastName}`.trim() : "Guest";
   const role       = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : "Patient";
   const avatarChar = user?.firstName ? user.firstName.charAt(0).toUpperCase() : "?";
+
+  const handleLogout = () => {
+    clearSession();
+    navigate("/login");
+  };
 
   return (
     <aside style={{
@@ -21,9 +26,8 @@ const Sidebar = () => {
       height: "100vh", overflowY: "auto",
       boxShadow: "2px 0 20px rgba(124,58,237,0.06)",
     }}>
-      {/* Logo */}
-      <div style={{ marginBottom: 32, paddingLeft: 4, cursor: "pointer" }}
-        onClick={() => navigate("/")}>
+      {/* Logo — no longer clickable */}
+      <div style={{ marginBottom: 32, paddingLeft: 4 }}>
         <Logo />
       </div>
 
@@ -69,7 +73,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* User profile */}
+      {/* User profile card */}
       <div style={{
         marginTop: 24, padding: "14px 12px", borderRadius: radius.lg,
         background: colors.purpleSoft, border: `1px solid ${colors.border}`,
@@ -87,6 +91,36 @@ const Sidebar = () => {
           <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: fonts.body }}>{role}</div>
         </div>
       </div>
+
+      {/* Logout button */}
+      <button
+        onClick={handleLogout}
+        style={{
+          marginTop: 10,
+          width: "100%", padding: "11px 16px",
+          borderRadius: radius.md,
+          border: "1.5px solid #FCA5A5",
+          background: "#FEF2F2",
+          color: "#DC2626",
+          fontFamily: fonts.body, fontSize: 13, fontWeight: 700,
+          cursor: "pointer", textAlign: "left",
+          display: "flex", alignItems: "center", gap: 10,
+          transition: "all 0.18s",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "#DC2626";
+          e.currentTarget.style.color = "#fff";
+          e.currentTarget.style.borderColor = "#DC2626";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "#FEF2F2";
+          e.currentTarget.style.color = "#DC2626";
+          e.currentTarget.style.borderColor = "#FCA5A5";
+        }}
+      >
+        <span style={{ fontSize: 16 }}>🚪</span>
+        Log Out
+      </button>
     </aside>
   );
 };

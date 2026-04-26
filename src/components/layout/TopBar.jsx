@@ -3,13 +3,11 @@ import { colors, fonts, radius, shadows } from "../../styles/theme";
 import * as api from "../../api";
 
 const TopBar = () => {
-  const [query, setQuery] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Fetch notifications on mount and every 30s
   const fetchNotifs = async () => {
     try {
       const res = await api.getNotifications();
@@ -22,11 +20,10 @@ const TopBar = () => {
 
   useEffect(() => {
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 30000); // Polling for live feel
+    const interval = setInterval(fetchNotifs, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -72,31 +69,10 @@ const TopBar = () => {
       boxShadow: shadows.navbar,
       zIndex: 100,
     }}>
-      {/* Search Bar */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 10,
-        background: colors.bg, borderRadius: radius.md,
-        border: `1.5px solid ${colors.border}`,
-        padding: "8px 14px", maxWidth: 280, flex: "0 0 auto",
-      }}>
-        <span style={{ fontSize: 14, color: colors.textMuted }}>👤</span>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="| User Name"
-          style={{
-            border: "none", background: "transparent", outline: "none",
-            fontFamily: fonts.body, fontSize: 13, color: colors.text, width: 140,
-          }}
-        />
-        <span style={{ fontSize: 13, color: colors.textMuted, cursor: "pointer" }}>🔍</span>
-      </div>
-
       <div style={{ flex: 1 }} />
 
-      {/* Bell / Notification Dropdown Trigger */}
       <div ref={dropdownRef} style={{ position: "relative" }}>
-        <div 
+        <div
           onClick={toggleDropdown}
           style={{
             width: 38, height: 38, borderRadius: "50%",
@@ -104,6 +80,7 @@ const TopBar = () => {
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", fontSize: 17, transition: "all 0.2s",
             boxShadow: isOpen ? shadows.md : "none",
+            position: "relative",
           }}
         >
           🔔
@@ -116,7 +93,6 @@ const TopBar = () => {
           )}
         </div>
 
-        {/* Dropdown Menu */}
         {isOpen && (
           <div style={{
             position: "absolute", top: 48, right: 0,
@@ -134,11 +110,11 @@ const TopBar = () => {
             }}>
               <span style={{ fontFamily: fonts.display, fontSize: 14, fontWeight: 700, color: colors.text }}>Notifications</span>
               {notifications.length > 0 && (
-                <button 
+                <button
                   onClick={handleClearAll}
-                  style={{ 
-                    background: "none", border: "none", cursor: "pointer", 
-                    color: colors.red, fontSize: 11, fontWeight: 700, fontFamily: fonts.body 
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: colors.red, fontSize: 11, fontWeight: 700, fontFamily: fonts.body
                   }}
                 >
                   Clear All

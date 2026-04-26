@@ -5,6 +5,7 @@ export const NAV_ITEMS = [
   { icon: "🔔", label: "Chat with AI",  path: "/chat" },
   { icon: "📓", label: "Journal",       path: "/journal" },
   { icon: "📅", label: "Appointments",  path: "/appointments" },
+  { icon: "📋", label: "My History",    path: "/history" },
   { icon: "⚙️", label: "Settings",      path: "/settings" },
 ];
 

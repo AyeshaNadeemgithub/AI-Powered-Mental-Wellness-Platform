@@ -324,6 +324,9 @@ router.get('/me', protect, async (req, res) => {
         role:        true,
         avatarUrl:   true,
         phone:       true,
+        bio:         true,
+        timezone:    true,
+        language:    true,
         isVerified:  true,
         createdAt:   true,
         psychologist: true,
@@ -412,6 +415,7 @@ router.put('/profile', protect, async (req, res) => {
       select: {
         id: true, firstName: true, lastName: true,
         email: true, phone: true, role: true, avatarUrl: true,
+        bio: true, timezone: true, language: true,
         psychologist: true,
       }
     })
