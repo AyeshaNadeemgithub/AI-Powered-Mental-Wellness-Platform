@@ -22,6 +22,9 @@ model User {
   role         Role      @default(PATIENT)
   avatarUrl    String?
   phone        String?
+  bio          String?
+  timezone     String?   @default("asia-karachi")
+  language     String?   @default("en")
   isVerified   Boolean   @default(false)
   isActive     Boolean   @default(true)
   lastActiveAt DateTime?

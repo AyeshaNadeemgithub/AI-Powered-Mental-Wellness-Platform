@@ -18,6 +18,7 @@ import TherapistSignup from "./pages/TherapistSignup";
 import AdminSignup     from "./pages/AdminSignup";
 import AdminDashboard        from "./pages/AdminDashboard";
 import PsychologistDashboard from "./pages/PsychologistDashboard";
+import PatientHistory     from "./pages/PatientHistory";
 
 const App = () => (
   <BrowserRouter>
@@ -41,6 +42,7 @@ const App = () => (
         <Route path="/journal"      element={<Journal />} />
         <Route path="/appointments" element={<Appointments />} />
         <Route path="/settings"     element={<Settings />} />
+        <Route path="/history"      element={<PatientHistory />} />
       </Route>
 
       {/* Fallback */}

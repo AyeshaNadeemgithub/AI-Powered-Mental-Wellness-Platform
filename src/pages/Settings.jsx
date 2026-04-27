@@ -180,27 +180,35 @@ const Settings = () => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        // Try localStorage first for instant display, then verify with API
+        // Load from localStorage immediately for instant display
         const stored = api.getStoredUser();
         if (stored) {
-          setName(`${stored.firstName} ${stored.lastName}`.trim());
+          setName(`${stored.firstName || ""} ${stored.lastName || ""}`.trim());
           setEmail(stored.email || "");
           setPhone(stored.phone || "");
         }
+        // Load locally-stored prefs (bio, timezone, language)
+        try {
+          const prefs = JSON.parse(localStorage.getItem("calmmind_prefs") || "{}");
+          if (prefs.bio)      setBio(prefs.bio);
+          if (prefs.timezone) setTimezone(prefs.timezone);
+          if (prefs.language) setLanguage(prefs.language);
+        } catch {}
+
         // Then fetch fresh data from backend
         const res = await api.getMe();
         if (res && res.user) {
           const u = res.user;
-          setName(`${u.firstName} ${u.lastName}`.trim());
+          setName(`${u.firstName || ""} ${u.lastName || ""}`.trim());
           setEmail(u.email || "");
           setPhone(u.phone || "");
-          setBio(u.bio || "");
-           setTimezone(u.timezone || "asia-karachi");
-           setLanguage(u.language || "en");
-           if (u.psychologist) {
-             setSpecialization(u.psychologist.specialization || "");
-           }
-         }
+          if (u.bio)      setBio(u.bio);
+          if (u.timezone) setTimezone(u.timezone);
+          if (u.language) setLanguage(u.language);
+          if (u.psychologist) {
+            setSpecialization(u.psychologist.specialization || "");
+          }
+        }
       } catch (err) {
         console.error("Could not load user profile:", err);
       }
@@ -258,21 +266,52 @@ const Settings = () => {
 
   const handleSave = async () => {
     setSaveError("");
+    // Basic validation
+    if (!name.trim()) {
+      setSaveError("Full name cannot be empty.");
+      return;
+    }
     try {
-      const res = await api.updateProfile({ fullName: name, phone, bio, timezone, language, specialization });
-      if (res.error) {
-        setSaveError(res.error);
-        return;
+      // Save to backend (name and phone are supported fields)
+      const res = await api.updateProfile({ fullName: name.trim(), phone, bio, timezone, language, specialization });
+
+      // Always update localStorage with whatever we have — even if backend
+      // doesn't support bio/timezone/language yet, the UI stays consistent
+      const stored = api.getStoredUser() || {};
+      const nameParts = name.trim().split(" ");
+      const updated = {
+        ...stored,
+        firstName: nameParts[0],
+        lastName: nameParts.slice(1).join(" ") || stored.lastName || "-",
+        phone: phone || stored.phone,
+      };
+      // Store extra prefs locally
+      localStorage.setItem("calmmind_user", JSON.stringify(updated));
+      localStorage.setItem("calmmind_prefs", JSON.stringify({ bio, timezone, language }));
+
+      if (res && res.error) {
+        // Backend returned error but we already saved locally
+        setSaveError(res.error + " (local changes saved)");
+      } else {
+        if (res && res.user) {
+          localStorage.setItem("calmmind_user", JSON.stringify({ ...updated, ...res.user }));
+        }
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
       }
-      // Update localStorage so sidebar reflects the new name immediately
-      if (res.user) {
-        const stored = api.getStoredUser();
-        localStorage.setItem("calmmind_user", JSON.stringify({ ...stored, ...res.user }));
-      }
+    } catch (err) {
+      // Network error — save locally anyway so the user isn't blocked
+      const stored = api.getStoredUser() || {};
+      const nameParts = name.trim().split(" ");
+      localStorage.setItem("calmmind_user", JSON.stringify({
+        ...stored,
+        firstName: nameParts[0],
+        lastName: nameParts.slice(1).join(" ") || stored.lastName || "-",
+        phone: phone || stored.phone,
+      }));
+      localStorage.setItem("calmmind_prefs", JSON.stringify({ bio, timezone, language }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch (err) {
-      setSaveError("Could not save changes. Please try again.");
     }
   };
 
@@ -282,14 +321,32 @@ const Settings = () => {
     setTimeout(() => setSaved(false), 2500);
   };
 
+  const getPasswordStrength = (pw) => {
+    if (!pw) return null;
+    let score = 0;
+    if (pw.length >= 8)  score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score <= 1) return { label: "Weak",   color: "#EF4444", width: "25%"  };
+    if (score <= 2) return { label: "Fair",   color: "#F59E0B", width: "50%"  };
+    if (score <= 3) return { label: "Good",   color: "#3B82F6", width: "75%"  };
+    return              { label: "Strong", color: "#10B981", width: "100%" };
+  };
+
   const handleChangePassword = async () => {
     setPwError(""); setPwSuccess("");
     if (!currentPw || !newPw || !confirmPw)
       return setPwError("Please fill in all password fields.");
-    if (newPw !== confirmPw)
-      return setPwError("New passwords do not match.");
     if (newPw.length < 8)
       return setPwError("New password must be at least 8 characters.");
+    if (!/[A-Za-z]/.test(newPw) || !/[0-9]/.test(newPw))
+      return setPwError("Password must contain both letters and numbers.");
+    if (newPw !== confirmPw)
+      return setPwError("New passwords do not match.");
+    if (newPw === currentPw)
+      return setPwError("New password must be different from your current password.");
     try {
       const res = await api.changePassword({ currentPassword: currentPw, newPassword: newPw });
       if (res.error) return setPwError(res.error);
@@ -700,8 +757,34 @@ const Settings = () => {
                   </div>
                 )}
                 <InputField label="Current Password" value={currentPw} onChange={setCurrentPw} type="password" placeholder="••••••••" />
-                <InputField label="New Password"     value={newPw}     onChange={setNewPw}     type="password" placeholder="Min. 8 characters" />
+                <InputField label="New Password"     value={newPw}     onChange={setNewPw}     type="password" placeholder="Min. 8 characters, include numbers" />
+                {newPw && (() => {
+                  const str = getPasswordStrength(newPw);
+                  return (
+                    <div style={{ marginTop: -10, marginBottom: 16 }}>
+                      <div style={{ height: 4, background: colors.border, borderRadius: 4, overflow: "hidden", marginBottom: 4 }}>
+                        <div style={{ height: "100%", width: str.width, background: str.color, borderRadius: 4, transition: "all 0.3s" }} />
+                      </div>
+                      <div style={{ fontSize: 11, fontFamily: fonts.body, fontWeight: 700, color: str.color }}>
+                        Password strength: {str.label}
+                        {str.label === "Weak" && " — Add numbers & symbols"}
+                        {str.label === "Fair" && " — Add uppercase letters"}
+                        {str.label === "Good" && " — Almost there!"}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <InputField label="Confirm Password" value={confirmPw} onChange={setConfirmPw} type="password" placeholder="Repeat new password" />
+                {confirmPw && newPw !== confirmPw && (
+                  <div style={{ marginTop: -10, marginBottom: 12, fontSize: 11, fontFamily: fonts.body, fontWeight: 700, color: "#EF4444" }}>
+                    ❌ Passwords do not match
+                  </div>
+                )}
+                {confirmPw && newPw === confirmPw && (
+                  <div style={{ marginTop: -10, marginBottom: 12, fontSize: 11, fontFamily: fonts.body, fontWeight: 700, color: "#10B981" }}>
+                    ✅ Passwords match
+                  </div>
+                )}
                 <Button onClick={handleChangePassword} size="md">Update Password →</Button>
               </SettingsCard>
 

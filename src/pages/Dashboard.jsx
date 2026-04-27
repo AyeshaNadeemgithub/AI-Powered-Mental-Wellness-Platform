@@ -162,7 +162,7 @@ const Dashboard = () => {
           </div>
           <p style={{ fontSize: 12, fontFamily: fonts.body, color: colors.textMuted, lineHeight: 1.65, marginBottom: 14, fontWeight: 600 }}>
             {data.upcomingAppointments?.length > 0
-              ? `You have a session with Dr. ${data.upcomingAppointments[0].psychologist.user.lastName}`
+              ? `You have a session with ${data.upcomingAppointments[0].psychologist.user.firstName} ${data.upcomingAppointments[0].psychologist.user.lastName}`
               : "No upcoming sessions. Book your check-in to stay on track."}
           </p>
           <Button variant="secondary" size="sm" onClick={() => navigate("/appointments")}>

@@ -109,7 +109,7 @@ const TherapistCard = ({ t, onBook }) => {
           </div>
         </div>
         <div style={{ textAlign:"right",flexShrink:0 }}>
-          <div style={{ fontFamily:fonts.display,fontSize:14,fontWeight:700,color:warm.brownMid }}>{t.price}</div>
+          <div style={{ fontFamily:fonts.display,fontSize:14,fontWeight:700,color:warm.brownMid }}>{t.price.replace("$", "PKR ").replace(/PKR (\d+)/, (m, n) => `PKR ${n}`)}</div>
           <div style={{ marginTop:4,fontSize:10,fontFamily:fonts.body,fontWeight:800,color:t.available?colors.green:colors.textMuted,display:"flex",alignItems:"center",gap:4,justifyContent:"flex-end" }}>
             <span style={{ width:6,height:6,borderRadius:"50%",background:t.available?colors.green:colors.textMuted,display:"inline-block" }}/>
             {t.available?"Available Now":"Busy"}
@@ -149,7 +149,7 @@ const UpcomingCard = ({ session, onCancel }) => {
   const displayName = isPsychologist
     ? `${session.patient?.firstName} ${session.patient?.lastName}`
     : session.psychologist
-      ? `Dr. ${session.psychologist.user.firstName} ${session.psychologist.user.lastName}`
+      ? `${session.psychologist.user.firstName} ${session.psychologist.user.lastName}`
       : "Therapist";
 
   const avatarLetter = isPsychologist
@@ -235,7 +235,7 @@ const Appointments = () => {
         setUpcoming(prev => [res.appointment, ...prev]);
       }
       setBookingTarget(null);
-      setSuccessMsg(res.message || `✅ Session booked with ${therapist.name}!`);
+      setSuccessMsg(`✅ Session booked with ${therapist.name.trim()}!`);
       setTimeout(() => setSuccessMsg(""), 4000);
       setActiveTab("upcoming");
     } catch (err) {

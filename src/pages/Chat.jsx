@@ -219,12 +219,10 @@ const ChatPanel = ({ messages, onSend, typing, loading, sessions, activeSessionI
 
   return (
     <div style={{
-      width: 390,
+      flex: 1,
       background: colors.card,
-      borderRight: `1.5px solid ${colors.border}`,
       display: "flex",
       flexDirection: "column",
-      boxShadow: "4px 0 20px rgba(124,58,237,0.07)",
     }}>
       {/* ── Header ── */}
       <div style={{
@@ -596,8 +594,8 @@ const Chat = () => {
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
         onNewSession={createNewSession}
+        fullWidth
       />
-      <SummaryPanel />
     </div>
   );
 };
