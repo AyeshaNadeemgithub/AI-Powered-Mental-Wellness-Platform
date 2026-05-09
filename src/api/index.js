@@ -15,28 +15,38 @@ const authHeaders = () => ({
   'Authorization': `Bearer ${getToken()}`
 })
 
+const handleResponse = async (response) => {
+  if (response.status === 401) {
+    clearSession()
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login'
+    }
+  }
+  return response.json()
+}
+
 const post = (path, body, withAuth = false) =>
   fetch(`${BASE}${path}`, {
     method:  'POST',
     headers: withAuth ? authHeaders() : { 'Content-Type': 'application/json' },
     body:    JSON.stringify(body)
-  }).then(r => r.json())
+  }).then(handleResponse)
 
 const get = (path) =>
-  fetch(`${BASE}${path}`, { headers: authHeaders() }).then(r => r.json())
+  fetch(`${BASE}${path}`, { headers: authHeaders() }).then(handleResponse)
 
 const put = (path, body) =>
   fetch(`${BASE}${path}`, {
     method:  'PUT',
     headers: authHeaders(),
     body:    JSON.stringify(body)
-  }).then(r => r.json())
+  }).then(handleResponse)
 
 const del = (path) =>
   fetch(`${BASE}${path}`, {
     method:  'DELETE',
     headers: authHeaders()
-  }).then(r => r.json())
+  }).then(handleResponse)
 
 // ─── Session helpers (localStorage) ──────────────────────────────────────────
 export const saveSession = (token, user) => {
@@ -99,4 +109,12 @@ export const cancelAppointment         = (id)   => put(`/appointments/${id}/canc
 // ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
 export const getAdminStats  = () => get('/admin/stats')
 export const getAllUsers    = () => get('/admin/users')
-export const getPsychologistDashboard  = ()     => get('/psychologist-dashboard')
+export const getAdminAppointments = () => get('/admin/appointments')
+export const approvePsychologist = (id) => put(`/admin/approve-psychologist/${id}`, {})
+export const deleteUser = (id) => del(`/admin/users/${id}`)
+export const getPsychologistDashboard  = (weekOffset = 0) => get(`/psychologist-dashboard?weekOffset=${weekOffset}`)
+
+// ─── DIRECT MESSAGING ──────────────────────────────────────────────────────────
+export const sendMessage      = (receiverId, content) => post('/messages', { receiverId, content }, true)
+export const getConversations = ()                   => get('/messages/conversations')
+export const getMessages      = (conversationId)      => get(`/messages/${conversationId}`)

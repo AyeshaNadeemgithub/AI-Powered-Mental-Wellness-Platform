@@ -276,23 +276,37 @@ const PatientHistory = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading]           = useState(true);
 
+  const loadAll = async () => {
+    // Only set loading on initial fetch
+    const [moodRes, journalRes, apptRes] = await Promise.allSettled([
+      api.getMoodHistory(),
+      api.getJournalEntries(),
+      api.getAppointments(),
+    ]);
+
+    if (moodRes.status === "fulfilled") {
+      // Backend returns { logs: [] }
+      const data = moodRes.value?.logs || moodRes.value;
+      if (Array.isArray(data)) setMoods(data);
+    }
+    if (journalRes.status === "fulfilled") {
+      // Backend returns { entries: [] }
+      const data = journalRes.value?.entries || journalRes.value;
+      if (Array.isArray(data)) setJournals(data);
+    }
+    if (apptRes.status === "fulfilled") {
+      // Backend returns []
+      const data = apptRes.value;
+      if (Array.isArray(data)) setAppointments(data);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const loadAll = async () => {
-      setLoading(true);
-      const [moodRes, journalRes, apptRes] = await Promise.allSettled([
-        api.getMoodHistory(),
-        api.getJournalEntries(),
-        api.getAppointments(),
-      ]);
-      if (moodRes.status === "fulfilled" && Array.isArray(moodRes.value))
-        setMoods(moodRes.value);
-      if (journalRes.status === "fulfilled" && Array.isArray(journalRes.value))
-        setJournals(journalRes.value);
-      if (apptRes.status === "fulfilled" && Array.isArray(apptRes.value))
-        setAppointments(apptRes.value);
-      setLoading(false);
-    };
+    setLoading(true);
     loadAll();
+    const interval = setInterval(loadAll, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   // ── Computed stats ────────────────────────────────────────────────────────

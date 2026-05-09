@@ -18,7 +18,7 @@ export default function TherapistSignup() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    fullName: "", licenseNumber: "", email: "", phone: "",
+    fullName: "", verificationType: "DEGREE", verificationDetail: "", email: "", phone: "",
     specialization: "", yearsExp: "", password: "", confirmPassword: "",
   });
 
@@ -37,16 +37,18 @@ export default function TherapistSignup() {
 
   function validate() {
     const e = {};
-    if (!form.fullName.trim())      e.fullName      = "Full name is required";
-    if (!form.licenseNumber.trim()) e.licenseNumber = "License number is required";
+    if (!form.fullName.trim())           e.fullName           = "Full name is required";
+    if (!form.verificationDetail.trim()) e.verificationDetail = "Document detail is required";
     if (!form.email.trim())         e.email         = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
     if (!form.phone.trim())         e.phone         = "Phone number is required";
+    else if (!/^\d{11}$/.test(form.phone.trim())) e.phone = "number doesn’t exist";
     if (!form.specialization)       e.specialization= "Please select a specialization";
     if (!form.yearsExp.toString().trim()) e.yearsExp = "Required";
     else if (isNaN(form.yearsExp) || +form.yearsExp < 0) e.yearsExp = "Enter a valid number";
     if (!form.password)             e.password      = "Password is required";
-    else if (form.password.length < 6) e.password   = "Minimum 6 characters";
+    else if (form.password.length < 8) e.password   = "Minimum 8 characters";
+    else if (!/[A-Z]/.test(form.password)) e.password = "Must contain 1 capital letter";
     if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords don't match";
     return e;
   }
@@ -60,13 +62,14 @@ export default function TherapistSignup() {
 
     try {
       const result = await therapistSignup({
-        fullName:       form.fullName,
-        email:          form.email,
-        phone:          form.phone,
-        licenseNumber:  form.licenseNumber,
-        specialization: form.specialization,
-        yearsExp:       form.yearsExp,
-        password:       form.password,
+        fullName:           form.fullName,
+        email:              form.email,
+        phone:              form.phone,
+        verificationType:   form.verificationType,
+        verificationDetail: form.verificationDetail,
+        specialization:     form.specialization,
+        yearsExp:           form.yearsExp,
+        password:           form.password,
       });
 
       if (result.error) {
@@ -175,10 +178,18 @@ export default function TherapistSignup() {
           </div>
 
           <div>
-            <label style={labelStyle}>License Number</label>
-            <input type="text" placeholder="PSY-2024-XXXXX" value={form.licenseNumber}
-              onChange={(e) => set("licenseNumber", e.target.value)} style={inputStyle("licenseNumber")} />
-            {errors.licenseNumber && <span style={styles.errMsg}>{errors.licenseNumber}</span>}
+            <label style={labelStyle}>Verification Document</label>
+            <div style={{ display: "flex", gap: 10 }}>
+              <select value={form.verificationType} onChange={(e) => set("verificationType", e.target.value)}
+                style={{ ...inputStyle("verificationType"), width: "120px", padding: "14px 8px" }}>
+                <option value="DEGREE">Degree</option>
+                <option value="CERTIFICATE">Certificate</option>
+                <option value="CARD">ID Card</option>
+              </select>
+              <input type="text" placeholder="Document Name or ID" value={form.verificationDetail}
+                onChange={(e) => set("verificationDetail", e.target.value)} style={inputStyle("verificationDetail")} />
+            </div>
+            {(errors.verificationType || errors.verificationDetail) && <span style={styles.errMsg}>Required for verification</span>}
           </div>
 
           <div>
@@ -242,7 +253,7 @@ export default function TherapistSignup() {
             <div style={styles.noticeBox}>
               <span style={{ fontSize: 18 }}>📋</span>
               <span style={{ fontSize: 14, color: colors.textMid, fontWeight: 600, fontFamily: "'Nunito', sans-serif" }}>
-                Your license will be verified within <strong>24–48 hours</strong> before activation.
+                Your credentials will be verified within <strong>24–48 hours</strong> before activation.
               </span>
             </div>
           </div>

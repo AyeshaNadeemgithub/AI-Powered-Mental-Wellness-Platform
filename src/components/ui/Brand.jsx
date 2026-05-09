@@ -3,8 +3,12 @@
 // ── Real logo image ──────────────────────────────────────────────────────────
 // mix-blend-mode: multiply makes the light lavender background invisible
 // on any white/light surface without needing a transparent PNG
-export const Logo = ({ size = "md" }) => {
-  const height = size === "sm" ? 48 : 64;
+export const Logo = ({ size = "md", dark = false }) => {
+  let height = 64;
+  if (size === "sm") height = 36;
+  else if (size === "lg") height = 90;
+  else if (size === "xl") height = 120;
+
   return (
     <img
       src="/calmmind-logo.jpeg"
@@ -13,8 +17,10 @@ export const Logo = ({ size = "md" }) => {
         height: height,
         width: "auto",
         objectFit: "contain",
-        mixBlendMode: "multiply",
+        // Use multiply for light backgrounds, but normal for dark backgrounds
+        mixBlendMode: dark ? "normal" : "multiply",
         display: "block",
+        filter: dark ? "brightness(1.2)" : "none",
       }}
     />
   );

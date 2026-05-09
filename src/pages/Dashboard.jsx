@@ -30,7 +30,7 @@ const HeroBanner = ({ firstName }) => {
           ✦ Daily Overview
         </div>
         <h2 style={{ fontFamily: fonts.display, fontSize: 32, fontWeight: 700, color: colors.text, lineHeight: 1.15, marginBottom: 8 }}>
-          Welcome Back,<br />{firstName ? `${firstName}!` : "Your Day Awaits."}
+          Welcome Back,<br />{firstName ? `${firstName.trim().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ")}!` : "Your Day Awaits."}
         </h2>
         <p style={{ fontFamily: fonts.body, fontSize: 13, color: colors.textMid, marginBottom: 20, fontWeight: 600 }}>
           Support For Today. Strength For Tomorrow.
@@ -125,6 +125,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboard();
+    const interval = setInterval(fetchDashboard, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <div style={{ padding: 40, fontFamily: fonts.body, color: colors.textMuted }}>Loading dashboard...</div>;

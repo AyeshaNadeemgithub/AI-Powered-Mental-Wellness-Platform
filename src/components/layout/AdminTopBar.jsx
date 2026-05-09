@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Logo } from "../ui/Brand";
 
 /**
  * Top header bar for Admin dashboard.
@@ -29,89 +30,9 @@ export default function AdminTopBar({ onLogout }) {
           minWidth: 200,
         }}
       >
-        <img
-          src="/calmmind-logo.png"
-          alt="CalmMind"
-          style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover" }}
-        />
-        <span
-          style={{
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#1E1B4B",
-          }}
-        >
-          CalmMind Wellness Platform
-        </span>
+        <Logo size="md" />
       </div>
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            background: "#F0EEFB",
-            borderRadius: 8,
-            border: "1px solid #E5E1F8",
-            padding: "8px 14px",
-            maxWidth: 320,
-            width: "100%",
-          }}
-        >
-          <span style={{ fontSize: 14, color: "#9896B8" }}>🔍</span>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search platform..."
-            style={{
-              border: "none",
-              background: "transparent",
-              outline: "none",
-              fontSize: 14,
-              color: "#1E1B4B",
-              flex: 1,
-            }}
-          />
-        </div>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
-        <span
-          style={{
-            fontWeight: 600,
-            color: "#4C4682",
-            fontSize: 14,
-          }}
-        >
-          Admin Profile
-        </span>
-        <button
-          onClick={onLogout}
-          style={{
-            background: "#EF4444",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "8px 18px",
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-      </div>
+      <div style={{ flex: 1 }} />
     </header>
   );
 }

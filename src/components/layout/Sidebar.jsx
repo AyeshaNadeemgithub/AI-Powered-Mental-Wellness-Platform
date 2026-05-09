@@ -7,9 +7,11 @@ import { getStoredUser, clearSession } from "../../api";
 const Sidebar = () => {
   const navigate = useNavigate();
   const user = getStoredUser();
-  const fullName   = user ? `${user.firstName} ${user.lastName}`.trim() : "Guest";
+  const rawFirst = user?.firstName || "Guest";
+  const rawLast = user?.lastName === "-" ? "" : user?.lastName || "";
+  const fullName = `${rawFirst} ${rawLast}`.trim().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
   const role       = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : "Patient";
-  const avatarChar = user?.firstName ? user.firstName.charAt(0).toUpperCase() : "?";
+  const avatarChar = fullName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     clearSession();
@@ -28,7 +30,7 @@ const Sidebar = () => {
     }}>
       {/* Logo — no longer clickable */}
       <div style={{ marginBottom: 32, paddingLeft: 4 }}>
-        <Logo />
+        <Logo size="xl" />
       </div>
 
       {/* Nav */}

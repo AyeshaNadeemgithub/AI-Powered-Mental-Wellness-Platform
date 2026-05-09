@@ -43,8 +43,11 @@ export default function PatientSignup() {
     if (!form.email.trim())       e.email       = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
     if (!form.phone.trim())       e.phone       = "Phone number is required";
+    else if (!/^\d{11}$/.test(form.phone.trim())) e.phone = "number doesn’t exist";
+    
     if (!form.password)           e.password    = "Password is required";
-    else if (form.password.length < 6) e.password = "Minimum 6 characters";
+    else if (form.password.length < 8) e.password = "Minimum 8 characters";
+    else if (!/[A-Z]/.test(form.password)) e.password = "Must contain 1 capital letter";
     if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords don't match";
     if (!form.primaryConcern)     e.primaryConcern = "Please select a concern";
     if (!form.agreed)             e.agreed      = "You must agree to the terms";

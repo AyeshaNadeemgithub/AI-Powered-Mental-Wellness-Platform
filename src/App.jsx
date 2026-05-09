@@ -6,7 +6,8 @@ import AppLayout from "./components/layout/AppLayout";
 // Pages
 import Landing         from "./pages/Landing";
 import Dashboard       from "./pages/Dashboard";
-import Chat            from "./pages/Chat";
+import AiChat          from "./pages/AiChat";
+import TherapistChat   from "./pages/TherapistChat";
 import MoodTracking    from "./pages/MoodTracking";
 import Journal         from "./pages/Journal";
 import Appointments    from "./pages/Appointments";
@@ -19,6 +20,13 @@ import AdminSignup     from "./pages/AdminSignup";
 import AdminDashboard        from "./pages/AdminDashboard";
 import PsychologistDashboard from "./pages/PsychologistDashboard";
 import PatientHistory     from "./pages/PatientHistory";
+import { isLoggedIn } from "./api";
+import { Navigate } from "react-router-dom";
+
+const ProtectedRoute = ({ children }) => {
+  if (!isLoggedIn()) return <Navigate to="/login" replace />;
+  return children;
+};
 
 const App = () => (
   <BrowserRouter>
@@ -31,14 +39,15 @@ const App = () => (
       <Route path="/admin-signup"     element={<AdminSignup />} />
 
       {/* Admin & Psychologist Dashboards — custom layout */}
-      <Route path="/admin-dashboard"        element={<AdminDashboard />} />
-      <Route path="/psychologist-dashboard" element={<PsychologistDashboard />} />
+      <Route path="/admin-dashboard"        element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/psychologist-dashboard" element={<ProtectedRoute><PsychologistDashboard /></ProtectedRoute>} />
 
       {/* App shell — all children get Sidebar + TopBar */}
-      <Route element={<AppLayout />}>
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard"    element={<Dashboard />} />
         <Route path="/mood"         element={<MoodTracking />} />
-        <Route path="/chat"         element={<Chat />} />
+        <Route path="/ai-support"   element={<AiChat />} />
+        <Route path="/chat"         element={<TherapistChat />} />
         <Route path="/journal"      element={<Journal />} />
         <Route path="/appointments" element={<Appointments />} />
         <Route path="/settings"     element={<Settings />} />

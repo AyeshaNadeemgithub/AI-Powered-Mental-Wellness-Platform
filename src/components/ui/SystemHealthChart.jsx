@@ -20,11 +20,12 @@ const MOCK_DATA = [
   { time: "24:00", cbtBot: 50, database: 45 },
 ];
 
-export default function SystemHealthChart() {
+export default function SystemHealthChart({ data = [] }) {
+  const chartData = data.length > 0 ? data : MOCK_DATA;
   return (
     <div style={{ width: "100%", height: 200 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={MOCK_DATA} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E1F8" />
           <XAxis
             dataKey="time"

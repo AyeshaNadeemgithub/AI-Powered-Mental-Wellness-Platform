@@ -104,9 +104,9 @@ router.post('/patient-signup', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/therapist-signup', async (req, res) => {
   try {
-    const { fullName, email, phone, licenseNumber, specialization, yearsExp, password } = req.body
+    const { fullName, email, phone, verificationType, verificationDetail, specialization, yearsExp, password } = req.body
 
-    if (!fullName || !email || !password || !licenseNumber || !specialization) {
+    if (!fullName || !email || !password || !verificationType || !verificationDetail || !specialization) {
       return res.status(400).json({ error: 'All fields are required.' })
     }
     if (password.length < 6) {
@@ -117,12 +117,6 @@ router.post('/therapist-signup', async (req, res) => {
     const existingUser = await prisma.user.findUnique({ where: { email } })
     if (existingUser) {
       return res.status(400).json({ error: 'An account with this email already exists.' })
-    }
-
-    // Check duplicate license
-    const existingLicense = await prisma.psychologist.findUnique({ where: { licenseNumber } })
-    if (existingLicense) {
-      return res.status(400).json({ error: 'This license number is already registered.' })
     }
 
     const nameParts  = fullName.trim().split(' ')
@@ -143,17 +137,18 @@ router.post('/therapist-signup', async (req, res) => {
         // Create the psychologist profile at the same time
         psychologist: {
           create: {
-            licenseNumber,
+            verificationType,
+            verificationDetail,
             specialization,
             languages:  ['English'],
-            isApproved: false,  // admin approves after license verification
+            isApproved: false,  // admin approves after verification
           }
         }
       }
     })
 
     res.status(201).json({
-      message: 'Application submitted! Your license will be verified within 24–48 hours.',
+      message: 'Application submitted! Your credentials will be verified within 24–48 hours.',
       pendingApproval: true,
       user: {
         id:        user.id,

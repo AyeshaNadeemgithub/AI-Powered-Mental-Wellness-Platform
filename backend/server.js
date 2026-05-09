@@ -6,7 +6,7 @@ const app = express()
 
 // ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 app.use(cors({
-  origin:      'http://localhost:3000',  // your React app
+  origin:      ['http://localhost:3000', 'http://localhost:3001'],  // your React app
   credentials: true
 }))
 app.use(express.json())
@@ -20,6 +20,7 @@ app.use('/api/dashboard',               require('./src/routes/dashboard'))
 app.use('/api/appointments',            require('./src/routes/appointments'))
 app.use('/api/psychologist-dashboard',  require('./src/routes/psychologist-dashboard'))
 app.use('/api/admin',                   require('./src/routes/admin'))
+app.use('/api/messages',                require('./src/routes/messages'))
 
 // ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {

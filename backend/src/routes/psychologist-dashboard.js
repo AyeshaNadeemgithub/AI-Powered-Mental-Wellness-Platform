@@ -29,6 +29,7 @@ router.get('/', async (req, res) => {
     }
 
     const psychologistId = psychologist.id
+    const weekOffset = parseInt(req.query.weekOffset) || 0
 
     // ── Today's appointments ──────────────────────────────────────────────
     const todayStart = new Date()
@@ -53,10 +54,10 @@ router.get('/', async (req, res) => {
 
     // ── This week's appointments (for calendar grid) ──────────────────────
     const weekStart = new Date()
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay()) // Sunday
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (weekOffset * 7))
     weekStart.setHours(0, 0, 0, 0)
     const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekEnd.getDate() + 6) // Saturday
+    weekEnd.setDate(weekEnd.getDate() + 6) 
     weekEnd.setHours(23, 59, 59, 999)
 
     const weekAppointments = await prisma.appointment.findMany({
@@ -111,6 +112,35 @@ router.get('/', async (req, res) => {
     })
     const patients = Array.from(patientMap.values())
 
+    // ── Fetch Recent MoodLogs for Patients ───────────────────────────────
+    const patientIds = patients.map(p => p.id)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    const moodLogs = await prisma.moodLog.findMany({
+      where: {
+        userId: { in: patientIds },
+        loggedAt: { gte: sevenDaysAgo }
+      },
+      orderBy: { loggedAt: 'asc' },
+      include: {
+        moodTags: {
+          include: { tag: true }
+        }
+      }
+    })
+
+    patients.forEach(p => {
+      p.moodLogs = moodLogs
+        .filter(m => m.userId === p.id)
+        .map(m => ({
+          score: m.moodScore,
+          label: m.moodLabel,
+          loggedAt: m.loggedAt,
+          tags: m.moodTags.map(mt => mt.tag.name)
+        }))
+    })
+
     // ── Stats ────────────────────────────────────────────────────────────
     const totalPatients     = patients.length
     const completedSessions = allAppointments.filter(a => a.status === 'COMPLETED').length
@@ -146,7 +176,7 @@ router.get('/', async (req, res) => {
         author: { select: { firstName: true, lastName: true, role: true } },
         appointment: {
           include: {
-            patient: { select: { firstName: true, lastName: true } }
+            patient: { select: { id: true, firstName: true, lastName: true } }
           }
         }
       }

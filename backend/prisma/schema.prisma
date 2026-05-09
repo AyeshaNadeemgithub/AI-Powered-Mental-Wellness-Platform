@@ -41,6 +41,10 @@ model User {
   userBadges       UserBadge[]
   notifications    Notification[]
   appointmentNotes AppointmentNote[]
+
+  conversationsAsPatient      Conversation[] @relation("PatientConversations")
+  conversationsAsPsychologist Conversation[] @relation("PsychologistConversations")
+  sentMessages                Message[]
 }
 
 enum Role {
@@ -58,7 +62,8 @@ model Psychologist {
   id                  String   @id @default(uuid())
   userId              String   @unique
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  licenseNumber       String   @unique
+  verificationType    String   @default("DEGREE") // DEGREE, CERTIFICATE, CARD
+  verificationDetail  String   @default("")       // Name/ID of the document
   specialization      String
   bio                 String?
   sessionDurationMins Int      @default(50)
@@ -246,6 +251,37 @@ model ChatMessage {
   aiMetadata  Json?
   isFlagged   Boolean     @default(false)
   createdAt   DateTime    @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DIRECT MESSAGING (Human-to-Human)
+// Used for Patient <-> Psychologist communication.
+// ─────────────────────────────────────────────────────────────────────────────
+model Conversation {
+  id             String   @id @default(uuid())
+  patientId      String
+  patient        User     @relation("PatientConversations", fields: [patientId], references: [id])
+  psychologistId String
+  psychologist   User     @relation("PsychologistConversations", fields: [psychologistId], references: [id])
+  lastMessage    String?
+  lastMessageAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  messages Message[]
+
+  @@unique([patientId, psychologistId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  content        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
