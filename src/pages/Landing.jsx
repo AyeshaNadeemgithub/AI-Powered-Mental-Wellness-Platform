@@ -330,7 +330,7 @@ const Features = () => {
           Built For Your Wellbeing
         </h2>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, maxWidth: 1100, margin: "0 auto" }}>
+      <div className="responsive-grid-3" style={{ gap: 24, maxWidth: 1100, margin: "0 auto" }}>
         {FEATURES.map((f, i) => (
           <div key={i}
             onMouseEnter={() => setHov(i)}
@@ -412,7 +412,7 @@ const Therapists = () => {
         </h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, maxWidth: 1100, margin: "0 auto" }}>
+      <div className="responsive-grid-3" style={{ gap: 32, maxWidth: 1100, margin: "0 auto" }}>
         {loading ? (
           [1, 2, 3].map(i => (
             <div key={i} style={{ height: 400, borderRadius: radius.xl, background: colors.bg, animation: "pulse 1.5s infinite" }} />

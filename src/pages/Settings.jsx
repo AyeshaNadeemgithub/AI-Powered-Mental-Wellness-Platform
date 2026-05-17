@@ -454,7 +454,7 @@ const Settings = () => {
       )}
 
       {/* ── Layout: sidebar + content ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 20, alignItems: "start" }}>
+      <div className="responsive-grid-280-1" style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 20, alignItems: "start" }}>
 
         {/* Sidebar nav */}
         <div style={{
@@ -527,7 +527,7 @@ const Settings = () => {
 
               <SettingsCard>
                 <SectionLabel>Personal Information</SectionLabel>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
+                <div className="responsive-grid-2" style={{ gap: "0 20px" }}>
                   <InputField label="Full Name"     value={name}  onChange={setName}  placeholder="Your name" />
                   <InputField label="Phone Number"  value={phone} onChange={setPhone} placeholder="+1 (555) 000-0000" />
                   <div style={{ gridColumn: "span 2" }}>
@@ -553,7 +553,7 @@ const Settings = () => {
                     onBlur={e => e.target.style.border = `1.5px solid ${colors.border}`}
                   />
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
+                <div className="responsive-grid-2" style={{ gap: "0 20px" }}>
                   <SelectField
                     label="Timezone"
                     value={timezone}

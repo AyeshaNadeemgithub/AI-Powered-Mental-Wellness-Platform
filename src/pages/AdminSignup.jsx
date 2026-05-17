@@ -285,7 +285,7 @@ const S = {
   subtitle:  { fontSize: 15, color: "#9896B8", fontWeight: 500, fontFamily: "'Nunito', sans-serif" },
   backBtn:   { background: "none", color: "#9896B8", fontSize: 13, fontWeight: 700, padding: "0 0 14px", cursor: "pointer", display: "block" },
   roleTab:   { padding: "7px 16px", borderRadius: 50, fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", fontFamily: "'Nunito', sans-serif" },
-  grid:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 20px" },
+  grid:      { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px 20px" },
   err:       { display: "block", marginTop: 5, fontSize: 11, color: "#EF4444", fontWeight: 700, fontFamily: "'Nunito', sans-serif" },
   eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 10, fontWeight: 800, color: "#BE185D", cursor: "pointer", padding: "4px 8px", border: "none", textTransform: "uppercase", letterSpacing: "0.05em" },
   noticeBox: { display: "flex", alignItems: "center", gap: 12, background: "#FFF0F6", border: "1px solid #FBCFE8", borderRadius: 14, padding: "14px 18px" },

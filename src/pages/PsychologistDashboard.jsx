@@ -111,7 +111,7 @@ function ReportsView({ data, loading }) {
   return (
     <div>
       <div style={staffStyles.pageTitle}>Progress Reports</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="responsive-grid-3" style={{ marginBottom: 24 }}>
         {[
           { label: "Total Patients", value: stats.totalPatients || 0, icon: "👥", color: "#7C3AED" },
           { label: "Completed Sessions", value: stats.completedSessions || 0, icon: "✅", color: "#10B981" },
@@ -462,7 +462,7 @@ function AvailabilityView() {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "350px 1fr", gap: 30 }}>
+    <div className="responsive-grid-350-1">
       <div>
         <SectionTitle>Availability Calendar</SectionTitle>
         <CardBox style={{ padding: 15 }}>
@@ -508,7 +508,7 @@ function AvailabilityView() {
               <div>No slots defined for this day.</div>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15 }}>
+            <div className="responsive-grid-2">
               {slots.map(slot => (
                 <div key={slot.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 20px", background: slot.isAvailable ? "#fff" : "#F3F4F6", border: slot.isAvailable ? "1.5px solid #E5E1F8" : "1.5px solid #E5E7EB", borderRadius: 12, opacity: slot.isAvailable ? 1 : 0.8 }}>
                   <div>
@@ -643,7 +643,7 @@ function ChatView({ data, loading }) {
   return (
     <div>
       <div style={staffStyles.pageTitle}>Chat with Patients</div>
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20 }}>
+      <div className="responsive-grid-280-1">
         {/* Left: Patient List */}
         <CardBox style={{ padding: "16px 0" }}>
           <div style={{ padding: "0 16px 12px", borderBottom: "1px solid #E5E1F8", fontWeight: 700, color: "#1E1B4B", fontSize: 13 }}>
@@ -941,7 +941,7 @@ export default function PsychologistDashboard() {
                   {/* Personal Info */}
                   <section>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#7C3AED", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Personal Information</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className="responsive-grid-2">
                       <InfoItem label="Age" value={patientHistoryData.age} />
                       <InfoItem label="Gender" value={patientHistoryData.gender} />
                       <InfoItem label="Education" value={patientHistoryData.education} />
@@ -953,7 +953,7 @@ export default function PsychologistDashboard() {
                   {/* Family History */}
                   <section>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#7C3AED", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Family Background</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className="responsive-grid-2">
                       <InfoItem label="Parents" value={patientHistoryData.parentsStatus} />
                       <InfoItem label="Siblings" value={patientHistoryData.siblingsCount} />
                       <InfoItem label="Family Type" value={patientHistoryData.familyType} />

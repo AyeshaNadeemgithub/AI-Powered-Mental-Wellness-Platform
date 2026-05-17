@@ -38,10 +38,8 @@ function OverviewView({ stats, loading }) {
         Platform Overview
       </div>
       <div
+        className="responsive-grid-3"
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 24,
           marginBottom: 24,
         }}
       >
@@ -52,7 +50,7 @@ function OverviewView({ stats, loading }) {
         <div className="slide-up stagger-2"><StatCard label="REPORTED ISSUES" value={stats.reportedIssues || "0"} subtext="Needs review" accentColor="#7C3AED" subtextIcon="warning" /></div>
         <div className="slide-up stagger-3"><StatCard label="PLATFORM UPTIME" value={stats.uptime || "99.9%"} subtext="Healthy" accentColor="#7C3AED" subtextIcon="check" subtextColor="#10B981" /></div>
       </div>
-      <div style={{ display: "flex", gap: 24 }}>
+      <div className="responsive-flex-row mobile-gap-sm" style={{ gap: 24 }}>
         <CardBox className="slide-up stagger-1" style={{ flex: 2 }}>
           <div style={staffStyles.sectionTitle}>System Health (24h)</div>
           <SystemHealthChart data={stats.health} />
@@ -136,7 +134,8 @@ function UsersView({ users, loading, onApprove, onDelete }) {
       <div style={staffStyles.pageTitle}>User Management</div>
       <CardBox>
         <div style={staffStyles.sectionTitle}>User List ({users.length})</div>
-        <table style={{ width: "100%", borderCollapse: "collapse", margin: "16px 0 0" }}>
+        <div className="mobile-overflow-x">
+        <table style={{ width: "100%", borderCollapse: "collapse", margin: "16px 0 0", minWidth: 600 }}>
           <thead>
             <tr style={{ ...staffStyles.tableHead, borderBottom: "2px solid #E5E1F8" }}>
               <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Name</th>
@@ -242,6 +241,7 @@ function UsersView({ users, loading, onApprove, onDelete }) {
             })}
           </tbody>
         </table>
+        </div>
       </CardBox>
     </div>
   );
@@ -255,7 +255,8 @@ function AppointmentsView({ appointments, loading }) {
       <div style={staffStyles.pageTitle}>Appointments & Care Coordination</div>
       <CardBox>
         <div style={staffStyles.sectionTitle}>All Bookings ({appointments.length})</div>
-        <table style={{ width: "100%", borderCollapse: "collapse", margin: "16px 0 0" }}>
+        <div className="mobile-overflow-x">
+        <table style={{ width: "100%", borderCollapse: "collapse", margin: "16px 0 0", minWidth: 600 }}>
           <thead>
             <tr style={{ ...staffStyles.tableHead, borderBottom: "2px solid #E5E1F8" }}>
               <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Patient</th>
@@ -349,6 +350,7 @@ function AppointmentsView({ appointments, loading }) {
             })}
           </tbody>
         </table>
+        </div>
       </CardBox>
     </div>
   );
@@ -490,7 +492,7 @@ function SettingsView() {
     <div>
       <div style={{ fontWeight: 700, fontSize: 28, color: "#1E1B4B", marginBottom: 24 }}>Admin Settings</div>
       
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="responsive-grid-2">
         <CardBox>
           <div style={{ fontWeight: 700, fontSize: 18, color: "#1E1B4B", marginBottom: 20 }}>Account Profile</div>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>

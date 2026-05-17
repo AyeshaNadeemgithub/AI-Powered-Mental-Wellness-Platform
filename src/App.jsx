@@ -24,37 +24,6 @@ import { isLoggedIn } from "./api";
 import { Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-// ─── Sparkle Cursor ──────────────────────────────────────────────────────────
-const SparkleCursor = () => {
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      const sparkle = document.createElement("div");
-      sparkle.className = "sparkle-particle";
-      const size = Math.random() * 8 + 4;
-      sparkle.style.width = `${size}px`;
-      sparkle.style.height = `${size}px`;
-      sparkle.style.left = `${e.clientX}px`;
-      sparkle.style.top = `${e.clientY}px`;
-
-      const x = (Math.random() - 0.5) * 150;
-      const y = (Math.random() - 0.5) * 150;
-      sparkle.style.setProperty("--tw-x", `${x}px`);
-      sparkle.style.setProperty("--tw-y", `${y}px`);
-
-      const colors = ["#C4B5FD", "#A78BFA", "#7C3AED", "#F5D9A8", "#FFFFFF"];
-      sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
-      sparkle.style.boxShadow = `0 0 15px ${sparkle.style.background}`;
-
-      document.body.appendChild(sparkle);
-      setTimeout(() => sparkle.remove(), 1000);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-  return null;
-};
-
 const ProtectedRoute = ({ children }) => {
   if (!isLoggedIn()) return <Navigate to="/login" replace />;
   return children;
@@ -227,7 +196,6 @@ const App = () => {
     <BrowserRouter>
       {loading && <Preloader />}
       <div style={{ opacity: loading ? 0 : 1, transition: "opacity 0.6s ease-in" }}>
-        <SparkleCursor />
         <Routes>
           {/* Public — no sidebar */}
           <Route path="/" element={<Landing />} />

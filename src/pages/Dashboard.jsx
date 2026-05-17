@@ -184,7 +184,7 @@ const Dashboard = () => {
     <div className="page-enter">
       <HeroBanner firstName={data.firstName} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.7fr", gap: 20, marginBottom: 20 }}>
+      <div className="responsive-grid-1-1-7" style={{ marginBottom: 20 }}>
         <div className="slide-up stagger-1">
           <StreakCard streak={data.streak} totalPoints={data.totalPoints} badges={data.userBadges} />
         </div>
@@ -201,7 +201,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div className="responsive-grid-3" style={{ marginBottom: 20 }}>
         <Card className="hover-lift slide-up stagger-1">
           <div style={{ fontSize: 22, marginBottom: 10 }} className="float-subtle">📅</div>
           <div style={{ fontFamily: fonts.display, fontSize: 16, fontWeight: 700, color: colors.text, marginBottom: 8 }}>

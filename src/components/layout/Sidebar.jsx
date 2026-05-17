@@ -6,7 +6,7 @@ import { NAV_ITEMS } from "../../data";
 import { getStoredUser, clearSession, getUnreadMessagesCount } from "../../api";
 import { getSocket } from "../../socket";
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const navigate = useNavigate();
   const user = getStoredUser();
   const rawFirst = user?.firstName || "Guest";
@@ -50,18 +50,27 @@ const Sidebar = () => {
   }, []);
 
   return (
-    <aside style={{
-      width: 220, flexShrink: 0,
-      background: colors.sidebar,
-      borderRight: `1.5px solid ${colors.border}`,
-      display: "flex", flexDirection: "column",
-      padding: "24px 14px",
-      height: "100vh", overflowY: "auto",
-      boxShadow: "2px 0 20px rgba(124,58,237,0.06)",
-    }}>
-      {/* Logo — no longer clickable */}
-      <div style={{ marginBottom: 32, paddingLeft: 4 }}>
+    <aside 
+      className={`mobile-sidebar ${isMobileMenuOpen ? "open" : ""}`}
+      style={{
+        width: 220, flexShrink: 0,
+        background: colors.sidebar,
+        borderRight: `1.5px solid ${colors.border}`,
+        display: "flex", flexDirection: "column",
+        padding: "24px 14px",
+        height: "100vh", overflowY: "auto",
+        boxShadow: "2px 0 20px rgba(124,58,237,0.06)",
+        zIndex: 999,
+      }}>
+      <div style={{ marginBottom: 32, paddingLeft: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Logo size="md" />
+        <button 
+          className="mobile-flex"
+          style={{ display: "none", background: "none", border: "none", fontSize: 20, cursor: "pointer", color: colors.textMuted }}
+          onClick={() => setIsMobileMenuOpen && setIsMobileMenuOpen(false)}
+        >
+          ✕
+        </button>
       </div>
 
       {/* Nav */}
@@ -70,6 +79,7 @@ const Sidebar = () => {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => setIsMobileMenuOpen && setIsMobileMenuOpen(false)}
             className={`slide-up stagger-${(i % 4) + 1}`}
             style={({ isActive }) => ({
               display: "flex", alignItems: "center", gap: 12,

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { colors, fonts, radius, shadows } from "../../styles/theme";
 import * as api from "../../api";
 
-const TopBar = () => {
+const TopBar = ({ onMenuClick }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +68,14 @@ const TopBar = () => {
       padding: "0 28px", gap: 16, flexShrink: 0,
       boxShadow: shadows.navbar,
       zIndex: 100,
-    }}>
+    }} className="mobile-padding-sm">
+      <div 
+        className="mobile-flex" 
+        style={{ display: "none", alignItems: "center", justifyContent: "center", width: 40, height: 40, cursor: "pointer", fontSize: 24, color: colors.text }}
+        onClick={onMenuClick}
+      >
+        ☰
+      </div>
       <div style={{ flex: 1 }} />
 
       <div ref={dropdownRef} style={{ position: "relative" }}>

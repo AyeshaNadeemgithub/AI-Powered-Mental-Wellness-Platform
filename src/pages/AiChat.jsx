@@ -426,7 +426,7 @@ const SummaryPanel = () => (
       <MeditationSVG size={120} />
     </div>
 
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+    <div className="responsive-grid-2" style={{ gap: 20 }}>
       <Card>
         <div style={{ fontSize: 10, fontFamily: fonts.body, color: colors.textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
           Past 7 Days Mood Trend

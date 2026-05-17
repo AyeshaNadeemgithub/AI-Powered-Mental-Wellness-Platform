@@ -16,6 +16,7 @@ export default function AdminDashboardLayout({
   children,
   onLogout,
 }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const navigate = useNavigate();
   const handleLogout = onLogout || (() => navigate("/login"));
 
@@ -32,9 +33,18 @@ export default function AdminDashboardLayout({
         display: "flex",
         minHeight: "100vh",
         background: "#F0EEFB",
+        position: "relative"
       }}
     >
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="desktop-only"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 998 }} 
+        />
+      )}
       <aside
+        className={`mobile-sidebar ${isMobileMenuOpen ? "open" : ""}`}
         style={{
           width: 220,
           flexShrink: 0,
@@ -44,6 +54,7 @@ export default function AdminDashboardLayout({
           display: "flex",
           flexDirection: "column",
           boxShadow: "2px 0 20px rgba(124,58,237,0.06)",
+          zIndex: 999,
         }}
       >
         <div
@@ -51,10 +62,16 @@ export default function AdminDashboardLayout({
             marginBottom: 24,
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             paddingLeft: 4,
           }}
         >
           <Logo size="md" />
+          <button 
+            className="mobile-flex"
+            style={{ display: "none", background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9896B8" }}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >✕</button>
         </div>
         <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <div style={{ flex: 1 }}>
@@ -63,7 +80,10 @@ export default function AdminDashboardLayout({
               return (
                 <div
                   key={item.key}
-                  onClick={() => onMenuClick(item.key)}
+                  onClick={() => {
+                    onMenuClick(item.key);
+                    setIsMobileMenuOpen(false);
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -106,7 +126,10 @@ export default function AdminDashboardLayout({
 
           {/* Admin Settings Button */}
           <div
-            onClick={() => onMenuClick("settings")}
+            onClick={() => {
+              onMenuClick("settings");
+              setIsMobileMenuOpen(false);
+            }}
             style={{
               display: "flex",
               alignItems: "center",
@@ -203,7 +226,12 @@ export default function AdminDashboardLayout({
           background: "#F0EEFB",
           minWidth: 0,
         }}
+        className="mobile-padding-sm"
       >
+        <div className="mobile-flex" style={{ display: "none", alignItems: "center", marginBottom: 20, gap: 16 }}>
+          <button onClick={() => setIsMobileMenuOpen(true)} style={{ background: "none", border: "none", fontSize: 24, color: "#1E1B4B", padding: 0 }}>☰</button>
+          <div style={{ fontSize: 18, fontWeight: 700, fontFamily: fonts.display }}>Menu</div>
+        </div>
         {children}
       </main>
     </div>

@@ -589,7 +589,7 @@ const Journal = () => {
       </div>
 
       {/* ── Stats bar ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+      <div className="responsive-grid-4" style={{ marginBottom: 24 }}>
         {[
           {
             icon: "📝", label: "Total Entries",      value: loading ? "…" : entries.length,
@@ -642,7 +642,7 @@ const Journal = () => {
 
       {/* ── Main layout ── */}
       {!loading && (
-        <div style={{ display: "grid", gridTemplateColumns: showEditor ? "340px 1fr" : "1fr", gap: 20, alignItems: "start" }}>
+        <div className={showEditor ? "responsive-grid-350-1" : ""} style={{ display: "grid", gridTemplateColumns: showEditor ? "" : "1fr", gap: 20, alignItems: "start" }}>
 
           {/* ── LEFT: list panel ── */}
           <div>

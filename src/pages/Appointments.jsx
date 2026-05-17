@@ -154,7 +154,7 @@ const BookingModal = ({ therapist, onClose, onConfirm, loading }) => {
 
         <div style={{ padding: "24px" }}>
           {step === 1 && (
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24 }}>
+            <div className="responsive-grid-2" style={{ gap: 24 }}>
               <div>
                 <SectionLabel color={ac}>1. Choose Date</SectionLabel>
                 <div style={{ border: "1px solid #E5E7EB", borderRadius: 16, padding: 8 }}>
@@ -173,7 +173,7 @@ const BookingModal = ({ therapist, onClose, onConfirm, loading }) => {
                 <div style={{ flex: 1 }}>
                   <SectionLabel color={ac}>3. Available Times</SectionLabel>
                   {slotsLoading ? <div style={{ textAlign: "center", padding: 10, color: colors.textMuted }}>Loading...</div> : availableSlots.length === 0 ? <div style={{ padding: 15, background: warm.cream, borderRadius: 10, textAlign: "center", color: colors.textMuted, fontSize: 11, fontWeight: 600 }}>No slots.</div> : (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, maxHeight: 150, overflowY: "auto" }}>
+                    <div className="responsive-grid-2" style={{ gap: 6, maxHeight: 150, overflowY: "auto" }}>
                       {availableSlots.map(slot => (
                         <button key={slot.id} onClick={() => setSelectedSlot(slot)} style={{ padding: "8px", borderRadius: 8, border: selectedSlot?.id === slot.id ? `2px solid ${ac}` : `1.5px solid ${warm.sandBorder}`, background: selectedSlot?.id === slot.id ? ac : warm.cream, cursor: "pointer", fontSize: 11, fontWeight: 700, color: selectedSlot?.id === slot.id ? "#fff" : colors.textMid }}>{slot.startTime}</button>
                       ))}
@@ -527,7 +527,7 @@ const Appointments = () => {
       )}
 
       {/* ── Stats bar ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+      <div className="responsive-grid-4" style={{ marginBottom: 24 }}>
         {[
           { icon: "👨‍⚕️", label: "Licensed Therapists", value: therapists.length || "0", color: "#6D28D9", bg: "#F5F3FF", border: "#DDD6FE" },
           { icon: "🗓", label: "Your Sessions", value: upcoming.length, color: "#2b042aff", bg: "#F5F7FA", border: "#E4E7EC" },
@@ -576,7 +576,7 @@ const Appointments = () => {
               <div style={{ fontSize: 12, marginTop: 4 }}>{therapists.length === 0 ? "No psychologists have signed up yet. Check back later!" : "Try a different specialty or clear the filter."}</div>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+            <div className="responsive-grid-2" style={{ gap: 18 }}>
               {filteredTherapists.map(t => <TherapistCard key={t.id} t={t} onBook={handleBook} />)}
             </div>
           )}

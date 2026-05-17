@@ -173,9 +173,9 @@ const PatientHistory = () => {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+      <div className="responsive-flex-row mobile-gap-sm" style={{ gap: 24, alignItems: "flex-start" }}>
         {/* ── Left Navigation ── */}
-        <div style={{ width: 240, flexShrink: 0, position: "sticky", top: 20 }}>
+        <div className="mobile-full-width" style={{ width: 240, flexShrink: 0, position: "sticky", top: 20 }}>
           <div style={{ background: "#fff", borderRadius: radius.lg, border: `1.5px solid ${colors.border}`, overflow: "hidden", boxShadow: shadows.card }}>
             {tabs.map(tab => (
               <button

@@ -348,7 +348,7 @@ const StatsRow = ({ entries }) => {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+    <div className="responsive-grid-4" style={{ marginBottom: 24 }}>
       {stats.map((s, i) => (
         <div key={i} style={{
           background: "#fff", borderRadius: radius.lg,
@@ -482,9 +482,7 @@ const MoodTracking = () => {
 
       {/* ── Stats ── */}
       {loading ? (
-        <div style={{
-          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24,
-        }}>
+        <div className="responsive-grid-4" style={{ marginBottom: 24 }}>
           {[1,2,3,4].map(i => (
             <div key={i} style={{
               background: "#fff", borderRadius: radius.lg,
@@ -565,7 +563,7 @@ const MoodTracking = () => {
       </Card>
 
       {/* ── History ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 20 }}>
+      <div className="responsive-grid-1-1-7">
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <Card>
             <SectionLabel>7-Day Overview</SectionLabel>
