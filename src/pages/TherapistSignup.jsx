@@ -101,13 +101,13 @@ export default function TherapistSignup() {
   };
 
   if (success) {
-    setTimeout(() => navigate("/psychologist-dashboard"), 1800);
+    setTimeout(() => navigate("/login"), 1800);
     return (
       <div style={styles.page}>
         <div style={styles.blobA} /><div style={styles.blobB} />
         <div style={styles.card}>
           <div style={{ textAlign: "center", padding: "24px 0" }}>
-            <div style={{ fontSize: 72, marginBottom: 16 }}>📋</div>
+            <div style={{ fontSize: 72, marginBottom: 16 }}></div>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, color: colors.text, marginBottom: 10 }}>
               Application Submitted!
             </h2>
@@ -116,7 +116,7 @@ export default function TherapistSignup() {
               Your license will be verified within <strong>24–48 hours</strong>.
             </p>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: colors.tealSoft, border: `1.5px solid ${colors.tealBorder}`, color: colors.teal, borderRadius: 50, padding: "10px 24px", fontSize: 14, fontWeight: 700, marginBottom: 32, fontFamily: "'Nunito', sans-serif" }}>
-              👩‍⚕️ Psychologist Account — Pending Review
+              Psychologist Account — Pending Review
             </div>
             <br />
             <button type="button" onClick={() => navigate("/login")}
@@ -134,16 +134,12 @@ export default function TherapistSignup() {
     <div style={styles.page}>
       <div style={styles.blobA} /><div style={styles.blobB} />
 
-      <div style={styles.logoWrap} onClick={() => navigate("/")}>
-        <span style={{ fontSize: 26 }}>🌿</span>
-        <span style={styles.logoText}>CalmMind</span>
-      </div>
+      
 
       <div style={styles.card}>
         <button type="button" onClick={() => navigate("/login")} style={styles.backBtn}>← Back to Login</button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <span style={{ fontSize: 36 }}>👩‍⚕️</span>
           <h1 style={styles.heading}>Psychologist Sign Up</h1>
         </div>
         <p style={styles.subtitle}>Join our network of licensed mental health professionals.</p>
@@ -151,28 +147,28 @@ export default function TherapistSignup() {
         <div style={{ display: "flex", gap: 8, marginBottom: 28, marginTop: 14 }}>
           <button type="button" onClick={() => navigate("/patient-signup")}
             style={{ ...styles.roleTab, background: "transparent", color: colors.textMuted, border: `1.5px solid ${colors.border}` }}>
-            🧘‍♀️ Patient
+            Patient
           </button>
           <button type="button"
             style={{ ...styles.roleTab, background: colors.teal, color: "#fff", border: `1.5px solid ${colors.teal}` }}>
-            👩‍⚕️ Psychologist
+            Psychologist
           </button>
           <button type="button" onClick={() => navigate("/admin-signup")}
             style={{ ...styles.roleTab, background: "transparent", color: colors.textMuted, border: `1.5px solid ${colors.border}` }}>
-            🏢 Admin
+            Admin
           </button>
         </div>
 
         {apiError && (
           <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#EF4444", borderRadius: 12, padding: "12px 16px", fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: "'Nunito', sans-serif" }}>
-            ⚠️ {apiError}
+            {apiError}
           </div>
         )}
 
         <div style={styles.grid}>
           <div>
             <label style={labelStyle}>Full Name</label>
-            <input type="text" placeholder="Dr. Anya Sharma" value={form.fullName}
+            <input type="text" placeholder="Sarah Ahmed" value={form.fullName}
               onChange={(e) => set("fullName", e.target.value)} style={inputStyle("fullName")} />
             {errors.fullName && <span style={styles.errMsg}>{errors.fullName}</span>}
           </div>
@@ -194,7 +190,7 @@ export default function TherapistSignup() {
 
           <div>
             <label style={labelStyle}>Email</label>
-            <input type="email" placeholder="dr.anya@clinic.com" value={form.email}
+            <input type="email" placeholder="sarah@gmail.com" value={form.email}
               onChange={(e) => set("email", e.target.value)} style={inputStyle("email")} />
             {errors.email && <span style={styles.errMsg}>{errors.email}</span>}
           </div>
@@ -230,7 +226,7 @@ export default function TherapistSignup() {
                 onChange={(e) => set("password", e.target.value)}
                 style={{ ...inputStyle("password"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowPass(!showPass)} style={styles.eyeBtn}>
-                {showPass ? "🙈" : "👁️"}
+                {showPass ? "Hide" : "Show"}
               </button>
             </div>
             {errors.password && <span style={styles.errMsg}>{errors.password}</span>}
@@ -243,7 +239,7 @@ export default function TherapistSignup() {
                 onChange={(e) => set("confirmPassword", e.target.value)}
                 style={{ ...inputStyle("confirmPassword"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={styles.eyeBtn}>
-                {showConfirm ? "🙈" : "👁️"}
+                {showConfirm ? "Hide" : "Show"}
               </button>
             </div>
             {errors.confirmPassword && <span style={styles.errMsg}>{errors.confirmPassword}</span>}
@@ -251,7 +247,6 @@ export default function TherapistSignup() {
 
           <div style={{ gridColumn: "1 / -1" }}>
             <div style={styles.noticeBox}>
-              <span style={{ fontSize: 18 }}>📋</span>
               <span style={{ fontSize: 14, color: colors.textMid, fontWeight: 600, fontFamily: "'Nunito', sans-serif" }}>
                 Your credentials will be verified within <strong>24–48 hours</strong> before activation.
               </span>
@@ -310,7 +305,7 @@ const styles = {
   roleTab:   { padding: "7px 16px", borderRadius: 50, fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", fontFamily: "'Nunito', sans-serif" },
   grid:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 20px" },
   errMsg:    { display: "block", marginTop: 5, fontSize: 11, color: "#EF4444", fontWeight: 700, fontFamily: "'Nunito', sans-serif" },
-  eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 16, cursor: "pointer", padding: 4, border: "none" },
+  eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 10, fontWeight: 800, color: "#0E7490", cursor: "pointer", padding: "4px 8px", border: "none", textTransform: "uppercase", letterSpacing: "0.05em" },
   noticeBox: { display: "flex", alignItems: "center", gap: 12, background: "#EDE9FE", border: "1px solid #DDD6FE", borderRadius: 14, padding: "14px 18px" },
   submitBtn: { width: "100%", padding: "16px", borderRadius: 50, color: "#fff", fontSize: 16, fontWeight: 800, letterSpacing: "0.3px", boxShadow: "0 6px 24px rgba(14,116,144,0.30)", transition: "all 0.2s ease" },
   spinnerDot:{ width: 16, height: 16, border: "2.5px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" },

@@ -1,6 +1,6 @@
 const express = require('express')
-const router  = express.Router()
-const prisma  = require('../lib/prisma')
+const router = express.Router()
+const prisma = require('../lib/prisma')
 const { protect } = require('../middleware/auth')
 const Groq = require('groq-sdk')
 
@@ -13,8 +13,8 @@ router.post('/session', async (req, res) => {
   try {
     const session = await prisma.chatSession.create({
       data: {
-        userId:      req.user.id,
-        title:       'New Conversation',
+        userId: req.user.id,
+        title: 'New Conversation',
         sessionType: 'ai_support',
         aiModelUsed: 'llama-3.3-70b-versatile',
       }
@@ -32,7 +32,7 @@ router.post('/session', async (req, res) => {
 router.get('/sessions', async (req, res) => {
   try {
     const sessions = await prisma.chatSession.findMany({
-      where:   { userId: req.user.id },
+      where: { userId: req.user.id },
       orderBy: { startedAt: 'desc' },
       include: { _count: { select: { messages: true } } }
     })
@@ -54,7 +54,7 @@ router.get('/session/:id/messages', async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session not found.' })
 
     const messages = await prisma.chatMessage.findMany({
-      where:   { sessionId: req.params.id },
+      where: { sessionId: req.params.id },
       orderBy: { createdAt: 'asc' }
     })
     res.json({ messages })
@@ -84,9 +84,9 @@ router.post('/message', async (req, res) => {
 
     // 2. Fetch existing message history before saving the new one
     const existingMessages = await prisma.chatMessage.findMany({
-      where:   { sessionId },
+      where: { sessionId },
       orderBy: { createdAt: 'asc' },
-      take:    30
+      take: 30
     })
 
     const isFirstMessage = existingMessages.length === 0
@@ -120,12 +120,12 @@ Rules you must always follow:
       },
       // Add conversation history
       ...existingMessages.map(m => ({
-        role:    m.senderRole === 'user' ? 'user' : 'assistant',
+        role: m.senderRole === 'user' ? 'user' : 'assistant',
         content: m.content
       })),
       // Add the new user message
       {
-        role:    'user',
+        role: 'user',
         content: content
       }
     ]
@@ -134,9 +134,9 @@ Rules you must always follow:
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
     const completion = await groq.chat.completions.create({
-      model:       'llama-3.3-70b-versatile',
-      messages:    messages,
-      max_tokens:  1024,
+      model: 'llama-3.3-70b-versatile',
+      messages: messages,
+      max_tokens: 1024,
       temperature: 0.7,
     })
 
@@ -151,37 +151,38 @@ Rules you must always follow:
     const assistantMessage = await prisma.chatMessage.create({
       data: {
         sessionId,
-        senderRole:  'assistant',
-        content:     aiReply,
+        senderRole: 'assistant',
+        content: aiReply,
         contentType: 'text',
-        aiMetadata:  { model: 'llama-3.3-70b-versatile', timestamp: new Date() }
+        aiMetadata: { model: 'llama-3.3-70b-versatile', timestamp: new Date() }
       }
     })
 
     // 8. Award points (non-fatal)
     await prisma.reward.create({
       data: {
-        userId:       req.user.id,
-        actionType:   'CHAT_SESSION',
+        userId: req.user.id,
+        actionType: 'CHAT_SESSION',
         pointsEarned: 5,
-        description:  'Used AI chat support'
+        description: 'Used AI chat support'
       }
-    }).catch(() => {})
+    }).catch(() => { })
 
     res.json({ message: assistantMessage })
 
   } catch (err) {
-    console.error('[POST /chat/message]', err)
-
-    if (err.message?.includes('API_KEY') || err.message?.includes('api key') || err.message?.includes('Invalid API Key')) {
-      return res.status(500).json({ error: 'AI service is not configured. Please contact support.' })
+    console.error('[POST /chat/message] FULL ERROR:', err)
+    
+    // Check if it's a Groq API error
+    if (err.message?.includes('API_KEY') || err.message?.includes('api key') || err.message?.includes('Invalid API Key') || err.status === 401) {
+      return res.status(500).json({ error: 'AI service is not configured correctly. Please check your Groq API Key.' })
     }
 
     if (err.status === 429 || err.message?.includes('quota') || err.message?.includes('rate limit')) {
-      return res.status(500).json({ error: 'AI is temporarily busy. Please wait a moment and try again.' })
+      return res.status(500).json({ error: 'AI is temporarily busy (Rate Limit). Please wait a moment.' })
     }
 
-    res.status(500).json({ error: 'Could not send message. Please try again.' })
+    res.status(500).json({ error: `AI Error: ${err.message || 'Unknown error'}` })
   }
 })
 
@@ -197,7 +198,7 @@ router.delete('/session/:id', async (req, res) => {
 
     await prisma.chatSession.update({
       where: { id: req.params.id },
-      data:  { isActive: false, endedAt: new Date() }
+      data: { isActive: false, endedAt: new Date() }
     })
     res.json({ message: 'Session ended.' })
   } catch (err) {

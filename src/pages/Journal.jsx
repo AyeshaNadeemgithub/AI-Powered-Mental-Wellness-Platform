@@ -146,6 +146,7 @@ const EntryCard = ({ entry, onSelect, selected }) => {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       onClick={() => onSelect(entry)}
+      className="hover-lift slide-up"
       style={{
         background: selected ? colors.purpleSoft : "#fff",
         borderRadius: radius.lg,
@@ -154,7 +155,7 @@ const EntryCard = ({ entry, onSelect, selected }) => {
           : hov ? `1.5px solid ${colors.lavender}` : `1.5px solid ${colors.border}`,
         padding: "16px 18px",
         cursor: "pointer",
-        transition: "all 0.18s",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         boxShadow: selected ? `0 4px 20px ${colors.purple}20` : hov ? `0 4px 16px rgba(0,0,0,0.06)` : shadows.card,
         borderLeft: `3px solid ${entry.mood.color}`,
         marginBottom: 10,
@@ -609,12 +610,13 @@ const Journal = () => {
             color: "#BE185D", bg: "#FFF0F6", border: "#FBCFE8",
           },
         ].map((s, i) => (
-          <div key={i} style={{
+          <div key={i} className="slide-up" style={{
             background: s.bg, borderRadius: radius.lg,
             border: `1.5px solid ${s.border}`,
             padding: "16px 20px", boxShadow: shadows.card,
+            animationDelay: `${i * 0.1}s`
           }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>{s.icon}</div>
+            <div style={{ fontSize: 20, marginBottom: 8 }} className="float-subtle">{s.icon}</div>
             <div style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 700, color: s.color, marginBottom: 2 }}>
               {s.value}
             </div>

@@ -41,10 +41,52 @@ model User {
   userBadges       UserBadge[]
   notifications    Notification[]
   appointmentNotes AppointmentNote[]
+  patientIntake    PatientIntake?
 
   conversationsAsPatient      Conversation[] @relation("PatientConversations")
   conversationsAsPsychologist Conversation[] @relation("PsychologistConversations")
   sentMessages                Message[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATIENT INTAKE FORM
+// Permanent clinical history filled by patients.
+// ─────────────────────────────────────────────────────────────────────────────
+model PatientIntake {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Personal Info
+  age                   Int?
+  gender                String?
+  education             String?
+  occupation            String?
+  financialCondition    String?
+  
+  // Family Info
+  parentsStatus         String?
+  siblingsCount         Int?
+  familyType            String? // Joint / Nuclear
+  livingArrangement     String? // Together / Separated
+  maritalStatus         String?
+  
+  // Mental Health Info
+  pastTrauma            String?
+  previousTherapy       Boolean  @default(false)
+  previousTherapyDetails String?
+  medicalHistory        String?
+  mentalHealthConditions String?
+  currentSymptoms       String?
+  medications           String?
+  
+  // Therapy Expectations
+  therapyGoals          String?
+  therapistExpectations String?
+  mainConcerns          String?
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 enum Role {
@@ -116,6 +158,7 @@ model Appointment {
   meetingLink    String?
   feeAmount      Decimal           @default(0)
   paymentStatus  PaymentStatus     @default(UNPAID)
+  receiptUrl     String?
   cancelledAt    DateTime?
   cancelReason   String?
   createdAt      DateTime          @default(now())

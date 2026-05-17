@@ -284,6 +284,12 @@ router.post('/login', async (req, res) => {
 
     const token = generateToken(user)
 
+    // Find user with relations
+    const userWithRelations = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { psychologist: true }
+    })
+
     res.json({
       message: 'Login successful!',
       token,
@@ -294,6 +300,7 @@ router.post('/login', async (req, res) => {
         email:     user.email,
         role:      user.role,
         avatarUrl: user.avatarUrl,
+        psychologist: userWithRelations.psychologist,
       }
     })
 

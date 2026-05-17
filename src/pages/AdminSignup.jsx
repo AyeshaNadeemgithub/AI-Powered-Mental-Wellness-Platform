@@ -65,9 +65,9 @@ export default function AdminSignup() {
         setLoading(false);
         return;
       }
-      saveSession(result.token, result.user);
+      // Redirect to login instead of dashboard
       setSuccess(true);
-      setTimeout(() => navigate("/admin-dashboard"), 1800);
+      setTimeout(() => navigate("/login"), 1800);
     } catch (err) {
       setApiError("Connection failed. Is the backend running?");
     } finally {
@@ -95,7 +95,7 @@ export default function AdminSignup() {
         <div style={S.blobA} /><div style={S.blobB} />
         <div style={S.card}>
           <div style={{ textAlign: "center", padding: "24px 0" }}>
-            <div style={{ fontSize: 72, marginBottom: 16 }}>🛡️</div>
+            <div style={{ fontSize: 72, marginBottom: 16 }}></div>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, color: colors.text, marginBottom: 10 }}>
               Admin Account Created!
             </h2>
@@ -107,9 +107,9 @@ export default function AdminSignup() {
               🏢 {form.department} — Admin
             </div>
             <br />
-            <button type="button" onClick={() => navigate("/dashboard")}
+            <button type="button" onClick={() => navigate("/login")}
               style={{ ...S.submitBtn, background: `linear-gradient(135deg, ${colors.rose}, ${colors.roseLight})` }}>
-              Go to Dashboard →
+              Go to Sign In →
             </button>
           </div>
         </div>
@@ -122,16 +122,12 @@ export default function AdminSignup() {
     <div style={S.page}>
       <div style={S.blobA} /><div style={S.blobB} />
 
-      <div style={S.logoWrap} onClick={() => navigate("/")}>
-        <span style={{ fontSize: 26 }}>🌿</span>
-        <span style={S.logoText}>CalmMind</span>
-      </div>
+      
 
       <div style={S.card}>
         <button type="button" onClick={() => navigate("/login")} style={S.backBtn}>← Back to Login</button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <span style={{ fontSize: 36 }}>🏢</span>
           <h1 style={S.heading}>Admin Sign Up</h1>
         </div>
         <p style={S.subtitle}>Create an administrator account for platform management.</p>
@@ -139,35 +135,35 @@ export default function AdminSignup() {
         <div style={{ display: "flex", gap: 8, marginTop: 14, marginBottom: 28 }}>
           <button type="button" onClick={() => navigate("/patient-signup")}
             style={{ ...S.roleTab, background: "transparent", color: colors.textMuted, border: `1.5px solid ${colors.border}` }}>
-            🧘‍♀️ Patient
+            Patient
           </button>
           <button type="button" onClick={() => navigate("/therapist-signup")}
             style={{ ...S.roleTab, background: "transparent", color: colors.textMuted, border: `1.5px solid ${colors.border}` }}>
-            👩‍⚕️ Psychologist
+            Psychologist
           </button>
           <button type="button"
             style={{ ...S.roleTab, background: colors.rose, color: "#fff", border: `1.5px solid ${colors.rose}` }}>
-            🏢 Admin
+            Admin
           </button>
         </div>
 
         {apiError && (
           <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#EF4444", borderRadius: 12, padding: "12px 16px", fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: "'Nunito', sans-serif" }}>
-            ⚠️ {apiError}
+            {apiError}
           </div>
         )}
 
         <div style={S.grid}>
           <div>
             <label style={lbl}>Full Name</label>
-            <input type="text" placeholder="John Smith" value={form.fullName}
+            <input type="text" placeholder="Ali Ahmed" value={form.fullName}
               onChange={(e) => setField("fullName", e.target.value)} style={inp("fullName")} />
             {errors.fullName && <span style={S.err}>{errors.fullName}</span>}
           </div>
 
           <div>
             <label style={lbl}>Email Address</label>
-            <input type="email" placeholder="admin@calmmind.com" value={form.email}
+            <input type="email" placeholder="admin@gmail.com" value={form.email}
               onChange={(e) => setField("email", e.target.value)} style={inp("email")} />
             {errors.email && <span style={S.err}>{errors.email}</span>}
           </div>
@@ -196,7 +192,7 @@ export default function AdminSignup() {
                 value={form.adminCode} onChange={(e) => setField("adminCode", e.target.value)}
                 style={{ ...inp("adminCode"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowCode(!showCode)} style={S.eyeBtn}>
-                {showCode ? "🙈" : "👁️"}
+                {showCode ? "Hide" : "Show"}
               </button>
             </div>
             {errors.adminCode && <span style={S.err}>{errors.adminCode}</span>}
@@ -212,7 +208,7 @@ export default function AdminSignup() {
                 onChange={(e) => setField("password", e.target.value)}
                 style={{ ...inp("password"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowPass(!showPass)} style={S.eyeBtn}>
-                {showPass ? "🙈" : "👁️"}
+                {showPass ? "Hide" : "Show"}
               </button>
             </div>
             {errors.password && <span style={S.err}>{errors.password}</span>}
@@ -225,7 +221,7 @@ export default function AdminSignup() {
                 onChange={(e) => setField("confirmPassword", e.target.value)}
                 style={{ ...inp("confirmPassword"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={S.eyeBtn}>
-                {showConfirm ? "🙈" : "👁️"}
+                {showConfirm ? "Hide" : "Show"}
               </button>
             </div>
             {errors.confirmPassword && <span style={S.err}>{errors.confirmPassword}</span>}
@@ -233,7 +229,6 @@ export default function AdminSignup() {
 
           <div style={{ gridColumn: "1 / -1" }}>
             <div style={S.noticeBox}>
-              <span style={{ fontSize: 18 }}>🔒</span>
               <span style={{ fontSize: 14, color: colors.textMid, fontWeight: 600, fontFamily: "'Nunito', sans-serif" }}>
                 Admin accounts have full platform access. All activity is <strong>logged and monitored</strong>.
               </span>
@@ -292,7 +287,7 @@ const S = {
   roleTab:   { padding: "7px 16px", borderRadius: 50, fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", fontFamily: "'Nunito', sans-serif" },
   grid:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 20px" },
   err:       { display: "block", marginTop: 5, fontSize: 11, color: "#EF4444", fontWeight: 700, fontFamily: "'Nunito', sans-serif" },
-  eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 16, cursor: "pointer", padding: 4, border: "none" },
+  eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 10, fontWeight: 800, color: "#BE185D", cursor: "pointer", padding: "4px 8px", border: "none", textTransform: "uppercase", letterSpacing: "0.05em" },
   noticeBox: { display: "flex", alignItems: "center", gap: 12, background: "#FFF0F6", border: "1px solid #FBCFE8", borderRadius: 14, padding: "14px 18px" },
   submitBtn: { width: "100%", padding: "16px", borderRadius: 50, color: "#fff", fontSize: 16, fontWeight: 800, letterSpacing: "0.3px", boxShadow: "0 6px 24px rgba(190,24,93,0.30)", transition: "all 0.2s ease" },
   spinner:   { width: 16, height: 16, border: "2.5px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" },

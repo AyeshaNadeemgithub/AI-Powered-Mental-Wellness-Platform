@@ -15,6 +15,7 @@ export default function PsychologistDashboardLayout({
   onMenuClick,
   children,
   rightPanel,
+  unreadMessages = 0,
   onLogout,
 }) {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function PsychologistDashboardLayout({
             paddingLeft: 4,
           }}
         >
-          <Logo size="xl" />
+          <Logo size="md" />
         </div>
         <nav style={{ flex: 1 }}>
           {menuItems.map((item) => {
@@ -86,7 +87,15 @@ export default function PsychologistDashboardLayout({
                   active={isActive}
                   inverted={isActive}
                 />
-                {item.label}
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {item.key === "chat" && unreadMessages > 0 && (
+                  <span style={{
+                    background: isActive ? "#fff" : colors.green,
+                    color: isActive ? colors.purple : "#fff",
+                    fontSize: 10, fontWeight: 700,
+                    padding: "2px 7px", borderRadius: radius.full,
+                  }}>{unreadMessages}</span>
+                )}
               </div>
             );
           })}

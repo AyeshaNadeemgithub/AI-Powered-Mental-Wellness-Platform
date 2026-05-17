@@ -25,8 +25,9 @@ function OverviewView({ stats, loading }) {
   const auditLog = stats.auditLog || [];
 
   return (
-    <div>
+    <div className="page-enter">
       <div
+        className="slide-up"
         style={{
           fontWeight: 700,
           fontSize: 28,
@@ -44,56 +45,19 @@ function OverviewView({ stats, loading }) {
           marginBottom: 24,
         }}
       >
-        <StatCard
-          label="TOTAL USERS"
-          value={stats.totalUsers?.toLocaleString() || "0"}
-          subtext="Total registered"
-          accentColor="#7C3AED"
-        />
-        <StatCard
-          label="ACTIVE PATIENTS"
-          value={stats.activePatients?.toLocaleString() || "0"}
-          subtext="Patients"
-          accentColor="#7C3AED"
-        />
-        <StatCard
-          label="ASSIGNED THERAPISTS"
-          value={stats.totalPsychologists?.toLocaleString() || "0"}
-          subtext={`${stats.approvedPsychologists || 0} approved`}
-          accentColor="#7C3AED"
-          subtextIcon="check"
-          subtextColor="#10B981"
-        />
-        <StatCard
-          label="MOOD LOGS"
-          value={stats.moodLogs?.toLocaleString() || "0"}
-          subtext={`${stats.moodLogsToday || 0} today`}
-          accentColor="#7C3AED"
-          subtextIcon="arrow"
-          subtextColor="#10B981"
-        />
-        <StatCard
-          label="REPORTED ISSUES"
-          value={stats.reportedIssues || "0"}
-          subtext="Needs review"
-          accentColor="#7C3AED"
-          subtextIcon="warning"
-        />
-        <StatCard
-          label="PLATFORM UPTIME"
-          value={stats.uptime || "99.9%"}
-          subtext="Healthy"
-          accentColor="#7C3AED"
-          subtextIcon="check"
-          subtextColor="#10B981"
-        />
+        <div className="slide-up stagger-1"><StatCard label="TOTAL USERS" value={stats.totalUsers?.toLocaleString() || "0"} subtext="Total registered" accentColor="#7C3AED" /></div>
+        <div className="slide-up stagger-2"><StatCard label="ACTIVE PATIENTS" value={stats.activePatients?.toLocaleString() || "0"} subtext="Patients" accentColor="#7C3AED" /></div>
+        <div className="slide-up stagger-3"><StatCard label="ASSIGNED THERAPISTS" value={stats.totalPsychologists?.toLocaleString() || "0"} subtext={`${stats.approvedPsychologists || 0} approved`} accentColor="#7C3AED" subtextIcon="check" subtextColor="#10B981" /></div>
+        <div className="slide-up stagger-1"><StatCard label="MOOD LOGS" value={stats.moodLogs?.toLocaleString() || "0"} subtext={`${stats.moodLogsToday || 0} today`} accentColor="#7C3AED" subtextIcon="arrow" subtextColor="#10B981" /></div>
+        <div className="slide-up stagger-2"><StatCard label="REPORTED ISSUES" value={stats.reportedIssues || "0"} subtext="Needs review" accentColor="#7C3AED" subtextIcon="warning" /></div>
+        <div className="slide-up stagger-3"><StatCard label="PLATFORM UPTIME" value={stats.uptime || "99.9%"} subtext="Healthy" accentColor="#7C3AED" subtextIcon="check" subtextColor="#10B981" /></div>
       </div>
       <div style={{ display: "flex", gap: 24 }}>
-        <CardBox style={{ flex: 2 }}>
+        <CardBox className="slide-up stagger-1" style={{ flex: 2 }}>
           <div style={staffStyles.sectionTitle}>System Health (24h)</div>
           <SystemHealthChart data={stats.health} />
         </CardBox>
-        <CardBox style={{ flex: 1 }}>
+        <CardBox className="slide-up stagger-2" style={{ flex: 1 }}>
           <div
             style={{
               ...staffStyles.sectionTitle,
@@ -102,14 +66,15 @@ function OverviewView({ stats, loading }) {
               gap: 8,
             }}
           >
-            <span style={{ fontSize: 16 }}>⚠️</span>
+            <span style={{ fontSize: 16 }} className="float-subtle">⚠️</span>
             Critical Alerts
           </div>
           {alerts.length === 0 ? (
              <div style={{ color: "#9896B8", fontSize: 13, padding: "10px 0" }}>No critical alerts.</div>
-          ) : alerts.map(a => (
+          ) : alerts.map((a, i) => (
             <div
               key={a.id}
+              className="fade-in"
               style={{
                 background: a.type === 'warning' ? "#FFF0F6" : "#F0F9FF",
                 borderRadius: 8,
@@ -118,6 +83,7 @@ function OverviewView({ stats, loading }) {
                 display: "flex",
                 gap: 10,
                 alignItems: "flex-start",
+                animationDelay: `${i * 0.1}s`
               }}
             >
               <span
@@ -144,14 +110,14 @@ function OverviewView({ stats, loading }) {
           ))}
         </CardBox>
       </div>
-      <CardBox style={{ marginTop: 24 }}>
+      <CardBox className="slide-up stagger-3" style={{ marginTop: 24 }}>
         <div style={staffStyles.sectionTitle}>Quick Audit Trail</div>
         {auditLog.length === 0 ? (
           <div style={{ color: "#9896B8", fontSize: 13 }}>No recent activity logged.</div>
         ) : (
           <ul style={{ ...staffStyles.listText, paddingLeft: 20, listStyle: "disc" }}>
-            {auditLog.map(log => (
-              <li key={log.id}>
+            {auditLog.map((log, i) => (
+              <li key={log.id} className="fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
                 {log.action} - {new Date(log.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </li>
             ))}
@@ -170,56 +136,102 @@ function UsersView({ users, loading, onApprove, onDelete }) {
       <div style={staffStyles.pageTitle}>User Management</div>
       <CardBox>
         <div style={staffStyles.sectionTitle}>User List ({users.length})</div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", margin: "16px 0 0" }}>
           <thead>
-            <tr style={staffStyles.tableHead}>
-              <th style={staffStyles.tableCellLeft}>Name</th>
-              <th style={staffStyles.tableCellLeft}>Email</th>
-              <th style={staffStyles.tableCellLeft}>Role</th>
-              <th style={staffStyles.tableCellLeft}>Verification</th>
-              <th style={staffStyles.tableCellLeft}>Status</th>
-              <th style={staffStyles.tableCellLeft}>Action</th>
+            <tr style={{ ...staffStyles.tableHead, borderBottom: "2px solid #E5E1F8" }}>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Name</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Email</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Role</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Verification</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Status</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(u => {
+            {users.map((u, i) => {
               const isPsychologist = u.role === "PSYCHOLOGIST";
               const isApproved = u.psychologist?.isApproved;
               const statusColor = isPsychologist ? (isApproved ? "#10B981" : "#F59E0B") : "#10B981";
               const statusText = isPsychologist ? (isApproved ? "Approved" : "Pending") : "Active";
               
               return (
-                <tr key={u.id}>
-                  <td style={staffStyles.tableCell}>{u.firstName} {u.lastName}</td>
-                  <td style={staffStyles.tableCell}>{u.email}</td>
-                  <td style={staffStyles.tableCell}>{u.role}</td>
-                  <td style={staffStyles.tableCell}>
+                <tr 
+                  key={u.id}
+                  style={{ 
+                    borderBottom: "1px solid #F0EEFB",
+                    background: i % 2 === 0 ? "#FCFBFF" : "#fff",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  <td style={{ ...staffStyles.tableCell, padding: "16px", color: "#1E1B4B", fontWeight: 700, fontSize: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: isPsychologist ? "linear-gradient(135deg, #7C3AED, #8B5CF6)" : "linear-gradient(135deg, #10B981, #34D399)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 13, color: "#fff", fontWeight: 800
+                      }}>
+                        {u.firstName?.charAt(0).toUpperCase()}
+                      </div>
+                      <span>{u.firstName} {u.lastName}</span>
+                    </div>
+                  </td>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px", color: "#4C4682", fontWeight: 600, fontSize: 14 }}>{u.email}</td>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
+                    <span style={{
+                      background: isPsychologist ? "#F5F3FF" : "#ECFDF5",
+                      color: isPsychologist ? "#7C3AED" : "#10B981",
+                      padding: "4px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700,
+                      textTransform: "uppercase"
+                    }}>
+                      {u.role}
+                    </span>
+                  </td>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px", color: "#4C4682", fontWeight: 500, fontSize: 13 }}>
                     {isPsychologist && u.psychologist ? (
-                      <div style={{ fontSize: 11 }}>
-                        <strong style={{ color: "#7C3AED" }}>{u.psychologist.verificationType}:</strong> {u.psychologist.verificationDetail}
+                      <div style={{ fontSize: 12 }}>
+                        <span style={{ color: "#7C3AED", fontWeight: 700 }}>{u.psychologist.verificationType}:</span>{" "}
+                        <span style={{ fontStyle: "italic" }}>{u.psychologist.verificationDetail}</span>
                       </div>
                     ) : "-"}
                   </td>
-                  <td style={{ ...staffStyles.tableCell, color: statusColor, fontWeight: 700 }}>
-                    {statusText}
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
+                    <span style={{ 
+                      background: `${statusColor}15`, 
+                      color: statusColor, 
+                      padding: "4px 10px", 
+                      borderRadius: 12, 
+                      fontSize: 11, 
+                      fontWeight: 800 
+                    }}>
+                      {statusText}
+                    </span>
                   </td>
-                  <td style={staffStyles.tableCell}>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
                     <div style={{ display: "flex", gap: 8 }}>
                       {isPsychologist && !isApproved && (
                         <button 
                           onClick={() => onApprove(u.psychologist.id)}
-                          style={{ background: "#10B981", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
-                          onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.1)"}
-                          onMouseLeave={(e) => e.currentTarget.style.filter = "none"}
+                          style={{ background: "linear-gradient(135deg, #10B981, #059669)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", boxShadow: "0 2px 6px rgba(16,185,129,0.2)" }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-1px)"}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
                         >
                           Approve
                         </button>
                       )}
                       <button 
                         onClick={() => onDelete(u.id)}
-                        style={{ background: "#FEE2E2", color: "#EF4444", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "#FECACA"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "#FEE2E2"}
+                        style={{ background: "#FEF2F2", color: "#EF4444", border: "1.5px solid #FCA5A5", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#EF4444";
+                          e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.borderColor = "#EF4444";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#FEF2F2";
+                          e.currentTarget.style.color = "#EF4444";
+                          e.currentTarget.style.borderColor = "#FCA5A5";
+                        }}
                       >
                         Delete
                       </button>
@@ -243,18 +255,18 @@ function AppointmentsView({ appointments, loading }) {
       <div style={staffStyles.pageTitle}>Appointments & Care Coordination</div>
       <CardBox>
         <div style={staffStyles.sectionTitle}>All Bookings ({appointments.length})</div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", margin: "16px 0 0" }}>
           <thead>
-            <tr style={staffStyles.tableHead}>
-              <th style={staffStyles.tableCellLeft}>Patient</th>
-              <th style={staffStyles.tableCellLeft}>Therapist</th>
-              <th style={staffStyles.tableCellLeft}>Date & Time</th>
-              <th style={staffStyles.tableCellLeft}>Type</th>
-              <th style={staffStyles.tableCellLeft}>Status</th>
+            <tr style={{ ...staffStyles.tableHead, borderBottom: "2px solid #E5E1F8" }}>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Patient</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Therapist</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Date & Time</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Type</th>
+              <th style={{ ...staffStyles.tableCellLeft, padding: "14px 16px", color: "#6D28D9", textTransform: "uppercase", fontSize: 11, letterSpacing: "0.05em" }}>Status</th>
             </tr>
           </thead>
           <tbody>
-            {appointments.map(appt => {
+            {appointments.map((appt, i) => {
               const statusColors = {
                 PENDING: "#F59E0B",
                 CONFIRMED: "#3B82F6",
@@ -263,28 +275,69 @@ function AppointmentsView({ appointments, loading }) {
               };
               
               return (
-                <tr key={appt.id}>
-                  <td style={staffStyles.tableCell}>
-                    <div style={{ fontWeight: 700, color: "#1E1B4B" }}>{appt.patient.firstName} {appt.patient.lastName}</div>
-                    <div style={{ fontSize: 11, color: "#9896B8" }}>{appt.patient.email}</div>
+                <tr 
+                  key={appt.id}
+                  style={{ 
+                    borderBottom: "1px solid #F0EEFB",
+                    background: i % 2 === 0 ? "#FCFBFF" : "#fff",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: "linear-gradient(135deg, #10B981, #34D399)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 13, color: "#fff", fontWeight: 800
+                      }}>
+                        {appt.patient.firstName?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, color: "#1E1B4B", fontSize: 14 }}>{appt.patient.firstName} {appt.patient.lastName}</div>
+                        <div style={{ fontSize: 11, color: "#9896B8", fontWeight: 600 }}>{appt.patient.email}</div>
+                      </div>
+                    </div>
                   </td>
-                  <td style={staffStyles.tableCell}>
-                    <div style={{ fontWeight: 700, color: "#1E1B4B" }}>Dr. {appt.psychologist.user.firstName} {appt.psychologist.user.lastName}</div>
-                    <div style={{ fontSize: 11, color: "#7C3AED" }}>{appt.psychologist.specialization}</div>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: "linear-gradient(135deg, #7C3AED, #8B5CF6)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 13, color: "#fff", fontWeight: 800
+                      }}>
+                        {appt.psychologist.user.firstName?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, color: "#1E1B4B", fontSize: 14 }}>{appt.psychologist.user.firstName} {appt.psychologist.user.lastName}</div>
+                        <div style={{ fontSize: 11, color: "#7C3AED", fontWeight: 700 }}>{appt.psychologist.specialization}</div>
+                      </div>
+                    </div>
                   </td>
-                  <td style={staffStyles.tableCell}>
-                    <div style={{ fontWeight: 600 }}>{new Date(appt.scheduledAt).toLocaleDateString()}</div>
-                    <div style={{ fontSize: 11, color: "#6B7280" }}>{new Date(appt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
+                    <div style={{ fontWeight: 700, color: "#1E1B4B", fontSize: 14 }}>{new Date(appt.scheduledAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                    <div style={{ fontSize: 12, color: "#6B7280", fontWeight: 600 }}>{new Date(appt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                   </td>
-                  <td style={staffStyles.tableCell}>
-                    <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", color: "#6B7280" }}>{appt.sessionType}</span>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
+                    <span style={{ 
+                      background: "#F3F4F6", 
+                      color: "#4B5563", 
+                      padding: "4px 10px", 
+                      borderRadius: 12, 
+                      fontSize: 11, 
+                      fontWeight: 700, 
+                      textTransform: "uppercase" 
+                    }}>
+                      {appt.sessionType}
+                    </span>
                   </td>
-                  <td style={staffStyles.tableCell}>
+                  <td style={{ ...staffStyles.tableCell, padding: "16px" }}>
                     <span style={{ 
                       background: `${statusColors[appt.status]}15`, 
                       color: statusColors[appt.status], 
                       padding: "4px 10px", 
-                      borderRadius: 20, 
+                      borderRadius: 12, 
                       fontSize: 11, 
                       fontWeight: 800 
                     }}>
@@ -426,6 +479,12 @@ function SupportView() {
 
 function SettingsView() {
   const [maintenance, setMaintenance] = useState(false);
+  const user = api.getStoredUser();
+  const rawFirst = user?.firstName || "System";
+  const rawLast = user?.lastName === "-" ? "" : user?.lastName || "";
+  const fullName = `${rawFirst} ${rawLast}`.trim().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ") || "Administrator";
+  const email = user?.email || "admin@calmmind.com";
+  const initials = (rawFirst.charAt(0) + (rawLast ? rawLast.charAt(0) : "D")).toUpperCase();
   
   return (
     <div>
@@ -435,10 +494,10 @@ function SettingsView() {
         <CardBox>
           <div style={{ fontWeight: 700, fontSize: 18, color: "#1E1B4B", marginBottom: 20 }}>Account Profile</div>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #7C3AED, #A78BFA)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, color: "#fff", fontWeight: 800 }}>AD</div>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #7C3AED, #A78BFA)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, color: "#fff", fontWeight: 800 }}>{initials}</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 16, color: "#1E1B4B" }}>System Administrator</div>
-              <div style={{ fontSize: 14, color: "#9896B8" }}>admin@calmmind.com</div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "#1E1B4B" }}>{fullName}</div>
+              <div style={{ fontSize: 14, color: "#9896B8" }}>{email}</div>
             </div>
           </div>
           <button style={{ width: "100%", padding: "12px", borderRadius: 10, background: "#F5F3FF", color: "#7C3AED", border: "none", fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>Update Profile</button>

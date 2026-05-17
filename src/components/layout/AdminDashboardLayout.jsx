@@ -1,11 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import AdminTopBar from "./AdminTopBar";
 import SidebarIcon from "../ui/SidebarIcon";
 import { Logo } from "../ui/Brand";
+import { getStoredUser } from "../../api";
+import { colors, fonts, radius } from "../../styles/theme";
 
 /**
- * Admin-specific layout: top bar + deep purple sidebar (220px) + content.
+ * Admin-specific layout: white sidebar (220px) + content.
+ * Structured beautifully to match other dashboards.
  */
 export default function AdminDashboardLayout({
   menuItems,
@@ -17,29 +19,45 @@ export default function AdminDashboardLayout({
   const navigate = useNavigate();
   const handleLogout = onLogout || (() => navigate("/login"));
 
+  const user = getStoredUser();
+  const rawFirst = user?.firstName || "Admin";
+  const rawLast = user?.lastName === "-" ? "" : user?.lastName || "";
+  const fullName = `${rawFirst} ${rawLast}`.trim().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ") || "System Admin";
+  const role = "Administrator";
+  const avatarChar = fullName.charAt(0).toUpperCase() || "A";
+
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         minHeight: "100vh",
         background: "#F0EEFB",
       }}
     >
-      <AdminTopBar onLogout={handleLogout} />
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <aside
+      <aside
+        style={{
+          width: 220,
+          flexShrink: 0,
+          background: "#fff",
+          borderRight: "1px solid #E5E1F8",
+          padding: "24px 14px",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "2px 0 20px rgba(124,58,237,0.06)",
+        }}
+      >
+        <div
           style={{
-            width: 220,
-            flexShrink: 0,
-            background: "#5B21B6",
-            padding: "24px 14px",
+            marginBottom: 24,
             display: "flex",
-            flexDirection: "column",
-            borderRight: "1px solid rgba(255,255,255,0.1)",
+            alignItems: "center",
+            paddingLeft: 4,
           }}
         >
-          <nav style={{ flex: 1 }}>
+          <Logo size="md" />
+        </div>
+        <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div style={{ flex: 1 }}>
             {menuItems.map((item) => {
               const isActive = activeKey === item.key;
               return (
@@ -53,100 +71,141 @@ export default function AdminDashboardLayout({
                     padding: "11px 14px",
                     marginBottom: 4,
                     borderRadius: 8,
-                    background: isActive ? "rgba(255,255,255,0.2)" : "transparent",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.7)",
+                    background: isActive
+                      ? "linear-gradient(135deg, #7C3AED, #8B5CF6)"
+                      : "transparent",
+                    color: isActive ? "#fff" : "#4C4682",
                     cursor: "pointer",
-                    fontWeight: isActive ? 700 : 500,
+                    fontWeight: isActive ? 700 : 600,
                     fontSize: 14,
+                    transition: "all 0.18s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = `${colors.purple}0D`;
+                      e.currentTarget.style.color = colors.purple;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#4C4682";
+                    }
                   }}
                 >
                   <SidebarIcon
                     icon={item.icon}
                     active={isActive}
-                    inverted
+                    inverted={isActive}
                   />
-                  {item.label}
+                  <span style={{ flex: 1 }}>{item.label}</span>
                 </div>
               );
             })}
-          </nav>
+          </div>
+
+          {/* Admin Settings Button */}
           <div
+            onClick={() => onMenuClick("settings")}
             style={{
-              borderTop: "1px solid rgba(255,255,255,0.15)",
-              paddingTop: 12,
               display: "flex",
-              flexDirection: "column",
-              gap: 4,
+              alignItems: "center",
+              gap: 10,
+              padding: "11px 14px",
+              marginBottom: 4,
+              borderRadius: 8,
+              background: activeKey === "settings"
+                ? "linear-gradient(135deg, #7C3AED, #8B5CF6)"
+                : "transparent",
+              color: activeKey === "settings" ? "#fff" : "#4C4682",
+              cursor: "pointer",
+              fontWeight: activeKey === "settings" ? 700 : 600,
+              fontSize: 14,
+              transition: "all 0.18s",
+            }}
+            onMouseEnter={(e) => {
+              if (activeKey !== "settings") {
+                e.currentTarget.style.background = `${colors.purple}0D`;
+                e.currentTarget.style.color = colors.purple;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeKey !== "settings") {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#4C4682";
+              }
             }}
           >
-            <div
-              onClick={() => onMenuClick("settings")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 14px",
-                borderRadius: 10,
-                color: "rgba(255,255,255,0.7)",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: 14,
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-                e.currentTarget.style.color = "#fff";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "rgba(255,255,255,0.7)";
-              }}
-            >
-              <SidebarIcon icon="⚙️" inverted />
-              Admin Settings
-            </div>
-            <div
-              onClick={handleLogout}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 14px",
-                borderRadius: 10,
-                background: "rgba(239, 68, 68, 0.1)",
-                color: "#FCA5A5",
-                cursor: "pointer",
-                fontWeight: 700,
-                fontSize: 14,
-                marginTop: 4,
-                transition: "all 0.2s",
-                border: "1px solid rgba(239, 68, 68, 0.2)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
-                e.currentTarget.style.transform = "none";
-              }}
-            >
-              <span style={{ fontSize: 18 }}>🚪</span>
-              Logout
-            </div>
+            <SidebarIcon
+              icon="⚙️"
+              active={activeKey === "settings"}
+              inverted={activeKey === "settings"}
+            />
+            <span style={{ flex: 1 }}>Admin Settings</span>
           </div>
-        </aside>
-        <main
+        </nav>
+
+        {/* User profile card */}
+        <div style={{
+          marginTop: 24, padding: "14px 12px", borderRadius: radius.lg,
+          background: colors.purpleSoft, border: `1px solid ${colors.border}`,
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 15, color: "#fff", fontWeight: 700, fontFamily: fonts.body,
+            flexShrink: 0,
+          }}>{avatarChar}</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: colors.text, fontFamily: fonts.body }}>{fullName}</div>
+            <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: fonts.body }}>{role}</div>
+          </div>
+        </div>
+
+        {/* Logout button */}
+        <button
+          onClick={handleLogout}
           style={{
-            flex: 1,
-            padding: "32px 40px",
-            overflowY: "auto",
-            background: "#F0EEFB",
+            marginTop: 10,
+            width: "100%", padding: "11px 16px",
+            borderRadius: radius.md,
+            border: "1.5px solid #FCA5A5",
+            background: "#FEF2F2",
+            color: "#DC2626",
+            fontFamily: fonts.body, fontSize: 13, fontWeight: 700,
+            cursor: "pointer", textAlign: "left",
+            display: "flex", alignItems: "center", gap: 10,
+            transition: "all 0.18s",
+            outline: "none",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = "#DC2626";
+            e.currentTarget.style.color = "#fff";
+            e.currentTarget.style.borderColor = "#DC2626";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "#FEF2F2";
+            e.currentTarget.style.color = "#DC2626";
+            e.currentTarget.style.borderColor = "#FCA5A5";
           }}
         >
-          {children}
-        </main>
-      </div>
+          <span style={{ fontSize: 16 }}>🚪</span>
+          Log Out
+        </button>
+      </aside>
+      <main
+        style={{
+          flex: 1,
+          padding: "32px 40px",
+          overflowY: "auto",
+          background: "#F0EEFB",
+          minWidth: 0,
+        }}
+      >
+        {children}
+      </main>
     </div>
   );
 }

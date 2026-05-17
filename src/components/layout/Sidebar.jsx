@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Logo } from "../ui/Brand";
 import { colors, fonts, radius } from "../../styles/theme";
 import { NAV_ITEMS } from "../../data";
-import { getStoredUser, clearSession } from "../../api";
+import { getStoredUser, clearSession, getUnreadMessagesCount } from "../../api";
+import { getSocket } from "../../socket";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -18,6 +20,35 @@ const Sidebar = () => {
     navigate("/login");
   };
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await getUnreadMessagesCount();
+        setUnreadCount(res.count || 0);
+      } catch (err) {
+        console.error("Failed to fetch unread count", err);
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+
+    const socket = getSocket();
+    if (socket) {
+      socket.on("message_notification", fetchUnread);
+      socket.on("messages_read", fetchUnread);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (socket) {
+        socket.off("message_notification", fetchUnread);
+        socket.off("messages_read", fetchUnread);
+      }
+    };
+  }, []);
+
   return (
     <aside style={{
       width: 220, flexShrink: 0,
@@ -30,15 +61,16 @@ const Sidebar = () => {
     }}>
       {/* Logo — no longer clickable */}
       <div style={{ marginBottom: 32, paddingLeft: 4 }}>
-        <Logo size="xl" />
+        <Logo size="md" />
       </div>
 
       {/* Nav */}
       <nav style={{ flex: 1 }}>
-        {NAV_ITEMS.map(item => (
+        {NAV_ITEMS.map((item, i) => (
           <NavLink
             key={item.path}
             to={item.path}
+            className={`slide-up stagger-${(i % 4) + 1}`}
             style={({ isActive }) => ({
               display: "flex", alignItems: "center", gap: 12,
               padding: "11px 16px", borderRadius: radius.md,
@@ -51,20 +83,30 @@ const Sidebar = () => {
               fontWeight: isActive ? 700 : 600,
               fontSize: 14,
               boxShadow: isActive ? `0 4px 16px ${colors.purple}35` : "none",
-              transition: "all 0.2s",
+              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             })}
             onMouseEnter={e => {
               if (!e.currentTarget.classList.contains("active"))
                 e.currentTarget.style.background = colors.purpleSoft;
+              e.currentTarget.style.transform = "translateX(4px)";
             }}
             onMouseLeave={e => {
               if (!e.currentTarget.getAttribute("aria-current"))
                 e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.transform = "translateX(0px)";
             }}
           >
             <span style={{ fontSize: 18 }}>{item.icon}</span>
             <span style={{ flex: 1 }}>{item.label}</span>
-            {item.badge && (
+            {item.label === "Therapist Chat" && unreadCount > 0 && (
+              <span style={{
+                background: colors.green, color: "#fff",
+                fontSize: 10, fontWeight: 700,
+                padding: "2px 7px", borderRadius: radius.full,
+                marginLeft: 8
+              }}>{unreadCount}</span>
+            )}
+            {item.badge && item.label !== "Therapist Chat" && (
               <span style={{
                 background: colors.purple, color: "#fff",
                 fontSize: 10, fontWeight: 700,

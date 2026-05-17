@@ -18,7 +18,7 @@ const authHeaders = () => ({
 const handleResponse = async (response) => {
   if (response.status === 401) {
     clearSession()
-    if (!window.location.pathname.includes('/login')) {
+    if (!window.location.pathname.includes('/login') && window.location.pathname !== '/') {
       window.location.href = '/login'
     }
   }
@@ -99,12 +99,17 @@ export const startChatSession = ()                      => post('/chat/session',
 export const sendChatMessage  = (sessionId, content)    => post('/chat/message',  { sessionId, content }, true)
 export const getChatSessions  = ()                      => get('/chat/sessions')
 export const getChatMessages  = (sessionId)             => get(`/chat/session/${sessionId}/messages`)
+export const getUnreadMessagesCount = ()                => get('/messages/unread-count')
 
 // ─── APPOINTMENTS & PSYCHOLOGISTS ─────────────────────────────────────────────
-export const getPsychologists          = ()     => get('/appointments/psychologists')
-export const bookAppointment           = (data) => post('/appointments', data, true)
-export const getAppointments           = ()     => get('/appointments')
-export const cancelAppointment         = (id)   => put(`/appointments/${id}/cancel`, {})
+export const getPsychologists     = ()                     => get('/appointments/psychologists')
+export const getAppointments     = ()                     => get('/appointments')
+export const bookAppointment     = (data)                 => post('/appointments', data, true)
+export const cancelAppointment   = (id)                   => put(`/appointments/${id}/cancel`, {})
+export const getAvailability     = (pId, date, all = false) => get(`/appointments/availability/${pId}?${date ? `date=${date}&` : ''}${all ? 'all=true' : ''}`)
+export const addAvailability     = (pId, slots)           => post('/appointments/availability', { psychologistId: pId, slots }, true)
+export const deleteAvailability  = (slotId)               => del(`/appointments/availability/${slotId}`)
+export const addAppointmentNote  = (apptId, content)       => post(`/appointments/${apptId}/notes`, { content }, true)
 
 // ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
 export const getAdminStats  = () => get('/admin/stats')
@@ -118,3 +123,9 @@ export const getPsychologistDashboard  = (weekOffset = 0) => get(`/psychologist-
 export const sendMessage      = (receiverId, content) => post('/messages', { receiverId, content }, true)
 export const getConversations = ()                   => get('/messages/conversations')
 export const getMessages      = (conversationId)      => get(`/messages/${conversationId}`)
+export const deleteConversation = (conversationId)    => del(`/messages/${conversationId}`)
+
+// ─── PATIENT INTAKE & HISTORY ───────────────────────────────────────────────
+export const getIntakeForm              = () => get('/intake')
+export const saveIntakeForm             = (data) => post('/intake', data, true)
+export const getPatientIntakeForTherapist = (pId) => get(`/intake/patient/${pId}`)

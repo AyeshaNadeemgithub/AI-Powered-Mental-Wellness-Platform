@@ -195,8 +195,72 @@ router.delete('/users/:id', protect, adminOnly, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id } })
     if (!user) return res.status(404).json({ error: 'User not found.' })
 
-    // Delete the user (Prisma will handle cascading deletions for related models)
-    await prisma.user.delete({ where: { id } })
+    // --- MANUAL CASCADE CLEANUP FOR NON-CASCADE RELATIONS ---
+
+    // 1. Delete all AppointmentNotes written by this user
+    await prisma.appointmentNote.deleteMany({
+      where: { authorId: id }
+    });
+
+    // 2. Delete all Messages sent by this user
+    await prisma.message.deleteMany({
+      where: { senderId: id }
+    });
+
+    // 3. Delete all Conversations where this user is the patient or psychologist
+    await prisma.conversation.deleteMany({
+      where: {
+        OR: [
+          { patientId: id },
+          { psychologistId: id }
+        ]
+      }
+    });
+
+    // 4. Delete all Appointments related to this user (as patient or psychologist)
+    const psychologist = await prisma.psychologist.findUnique({
+      where: { userId: id }
+    });
+    
+    if (psychologist) {
+      // Delete psychologist's appointments
+      await prisma.appointment.deleteMany({
+        where: { psychologistId: psychologist.id }
+      });
+      // Delete availability slots themselves
+      await prisma.availabilitySlot.deleteMany({
+        where: { psychologistId: psychologist.id }
+      });
+    }
+
+    // Delete patient appointments
+    await prisma.appointment.deleteMany({
+      where: { patientId: id }
+    });
+
+    // 5. Delete PatientIntake
+    await prisma.patientIntake.deleteMany({
+      where: { userId: id }
+    });
+
+    // 6. Delete other relations explicitly to be 100% safe
+    await prisma.userBadge.deleteMany({ where: { userId: id } });
+    await prisma.reward.deleteMany({ where: { userId: id } });
+    await prisma.notification.deleteMany({ where: { userId: id } });
+    await prisma.moodLog.deleteMany({ where: { userId: id } });
+    await prisma.journalEntry.deleteMany({ where: { userId: id } });
+    await prisma.chatSession.deleteMany({ where: { userId: id } });
+
+    // 7. Finally, delete the Psychologist record (if it exists) and then the User record!
+    if (psychologist) {
+      await prisma.psychologist.delete({
+        where: { id: psychologist.id }
+      });
+    }
+
+    await prisma.user.delete({
+      where: { id }
+    });
 
     res.json({ message: 'User deleted successfully.' })
   } catch (err) {

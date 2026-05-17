@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from "react";
 
-const TIME_SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+const TIME_SLOTS = [
+  "08:00", "09:00", "10:00", "11:00", "12:00", 
+  "13:00", "14:00", "15:00", "16:00", "17:00",
+  "18:00", "19:00", "20:00"
+];
 
 // Generate real day labels for the current week
 function getWeekDays(offset = 0) {
@@ -67,8 +71,8 @@ export default function WeekCalendarGrid({ appointments = [], weekOffset, setWee
   const currentDayIdx = now.getDay();
   const currentHour = now.getHours();
   const currentMin = now.getMinutes();
-  const showNowMarker = weekOffset === 0 && currentHour >= 9 && currentHour < 18;
-  const markerTop = ((currentHour - 9) * 48) + (currentMin / 60 * 48) + 40; // 40 is header height
+  const showNowMarker = weekOffset === 0 && currentHour >= 8 && currentHour < 21;
+  const markerTop = ((currentHour - 8) * 48) + (currentMin / 60 * 48) + 40; // 40 is header height
 
   return (
     <div>
@@ -85,11 +89,14 @@ export default function WeekCalendarGrid({ appointments = [], weekOffset, setWee
       <div style={{ position: "relative" }}>
         {showNowMarker && (
           <div style={{
-            position: "absolute", left: 60, right: 0, top: markerTop,
+            position: "absolute", 
+            left: `calc(60px + ((100% - 60px) / 7) * ${currentDayIdx})`, 
+            width: `calc((100% - 60px) / 7)`, 
+            top: markerTop,
             height: 2, background: "#EF4444", zIndex: 10,
             pointerEvents: "none"
           }}>
-            <div style={{ position: "absolute", left: -6, top: -4, width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
+            <div style={{ position: "absolute", left: -5, top: -4, width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
           </div>
         )}
         <div key={weekOffset} style={{ display: "grid", gridTemplateColumns: "60px repeat(7, 1fr)", gridTemplateRows: `40px repeat(${TIME_SLOTS.length}, 48px)`, border: "1px solid #E5E1F8", borderRadius: 12, overflow: "hidden" }}>

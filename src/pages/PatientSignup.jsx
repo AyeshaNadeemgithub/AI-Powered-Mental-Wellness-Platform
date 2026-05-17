@@ -67,9 +67,9 @@ export default function PatientSignup() {
         setLoading(false);
         return;
       }
-      saveSession(result.token, result.user);
+      // Redirect to login instead of dashboard
       setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1800);
+      setTimeout(() => navigate("/login"), 1800);
     } catch (err) {
       setApiError("Connection failed. Is the backend running?");
     } finally {
@@ -99,21 +99,21 @@ export default function PatientSignup() {
         <div style={S.blobA} /><div style={S.blobB} />
         <div style={S.card}>
           <div style={{ textAlign: "center", padding: "24px 0" }}>
-            <div style={{ fontSize: 72, marginBottom: 16 }}>🎉</div>
+            <div style={{ fontSize: 72, marginBottom: 16 }}></div>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, color: colors.text, marginBottom: 10 }}>
               Account Created!
             </h2>
             <p style={{ color: colors.textMuted, fontSize: 15, lineHeight: 1.6, marginBottom: 24, fontFamily: "'Nunito', sans-serif" }}>
               Welcome to CalmMind,{" "}
               <strong style={{ color: colors.purple }}>{form.fullName.split(" ")[0]}</strong>!
-              <br />Your wellness journey starts now. 🌿
+              <br />Your wellness journey starts now.
             </p>
             <button
               type="button"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/login")}
               style={{ ...S.submitBtn, background: `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})` }}
             >
-              Go to Dashboard →
+              Go to Sign In →
             </button>
           </div>
         </div>
@@ -127,36 +127,32 @@ export default function PatientSignup() {
     <div style={S.page}>
       <div style={S.blobA} /><div style={S.blobB} />
 
-      <div style={S.logoWrap} onClick={() => navigate("/")}>
-        <span style={{ fontSize: 26 }}>🌿</span>
-        <span style={S.logoText}>CalmMind</span>
-      </div>
+      
 
       <div style={S.card}>
         <button type="button" onClick={() => navigate("/login")} style={S.backBtn}>← Back to Login</button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <span style={{ fontSize: 36 }}>🧘‍♀️</span>
           <h1 style={S.heading}>Patient Sign Up</h1>
         </div>
         <p style={S.subtitle}>Create your account to start your wellness journey.</p>
 
         <div style={{ display: "flex", gap: 8, marginTop: 14, marginBottom: 28 }}>
           <button type="button" style={{ ...S.roleTab, background: colors.purple, color: "#fff", border: `1.5px solid ${colors.purple}` }}>
-            🧘‍♀️ Patient
+            Patient
           </button>
           <button type="button" onClick={() => navigate("/therapist-signup")} style={{ ...S.roleTab, background: "transparent", color: colors.textMuted, border: `1.5px solid ${colors.border}` }}>
-            👩‍⚕️ Psychologist
+            Psychologist
           </button>
           <button type="button" onClick={() => navigate("/admin-signup")} style={{ ...S.roleTab, background: "transparent", color: colors.textMuted, border: `1.5px solid ${colors.border}` }}>
-            🏢 Admin
+            Admin
           </button>
         </div>
 
         {/* Global API error */}
         {apiError && (
           <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#EF4444", borderRadius: 12, padding: "12px 16px", fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: "'Nunito', sans-serif" }}>
-            ⚠️ {apiError}
+            {apiError}
           </div>
         )}
 
@@ -195,7 +191,7 @@ export default function PatientSignup() {
                 value={form.password} onChange={(e) => setField("password", e.target.value)}
                 style={{ ...inp("password"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowPass(!showPass)} style={S.eyeBtn}>
-                {showPass ? "🙈" : "👁️"}
+                {showPass ? "Hide" : "Show"}
               </button>
             </div>
             {errors.password && <span style={S.err}>{errors.password}</span>}
@@ -208,7 +204,7 @@ export default function PatientSignup() {
                 value={form.confirmPassword} onChange={(e) => setField("confirmPassword", e.target.value)}
                 style={{ ...inp("confirmPassword"), paddingRight: 44 }} />
               <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={S.eyeBtn}>
-                {showConfirm ? "🙈" : "👁️"}
+                {showConfirm ? "Hide" : "Show"}
               </button>
             </div>
             {errors.confirmPassword && <span style={S.err}>{errors.confirmPassword}</span>}
@@ -298,7 +294,7 @@ const S = {
   roleTab:   { padding: "7px 16px", borderRadius: 50, fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", fontFamily: "'Nunito', sans-serif" },
   grid:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 20px" },
   err:       { display: "block", marginTop: 5, fontSize: 11, color: "#EF4444", fontWeight: 700, fontFamily: "'Nunito', sans-serif" },
-  eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 16, cursor: "pointer", padding: 4, border: "none" },
+  eyeBtn:    { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", fontSize: 10, fontWeight: 800, color: "#7C3AED", cursor: "pointer", padding: "4px 8px", border: "none", textTransform: "uppercase", letterSpacing: "0.05em" },
   submitBtn: { width: "100%", padding: "16px", borderRadius: 50, color: "#fff", fontSize: 16, fontWeight: 800, letterSpacing: "0.3px", boxShadow: "0 6px 24px rgba(124,58,237,0.35)", transition: "all 0.2s ease" },
   spinner:   { width: 16, height: 16, border: "2.5px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" },
 };

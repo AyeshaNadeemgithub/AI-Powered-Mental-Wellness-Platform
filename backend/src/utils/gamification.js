@@ -121,20 +121,33 @@ async function getUserStats(userId) {
 
   let streak = 0;
   if (rewards.length > 0) {
-    let currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
+    // Get unique dates in YYYY-MM-DD format to avoid time/timezone issues
+    const uniqueDates = [...new Set(rewards.map(r => 
+      new Date(r.earnedAt).toISOString().split('T')[0]
+    ))].sort().reverse();
 
-    for (const log of rewards) {
-      const logDate = new Date(log.earnedAt);
-      logDate.setHours(0, 0, 0, 0);
-      const diffDays = Math.round((currentDate - logDate) / (1000 * 60 * 60 * 24));
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    // If no log today AND no log yesterday, streak is broken
+    if (uniqueDates[0] !== today && uniqueDates[0] !== yesterday) {
+      return { moodLogs, journalEntries, totalPoints, streak: 0 };
+    }
+
+    let checkDate = new Date(uniqueDates[0]); // Start from the latest log date
+    streak = 1;
+
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const nextDate = new Date(uniqueDates[i]);
+      const diffDays = Math.round((checkDate - nextDate) / (1000 * 60 * 60 * 24));
       
-      if (diffDays === 0 || diffDays === 1) {
-        if (diffDays === 1) streak++;
-        else if (streak === 0) streak = 1; // First log of today
-        currentDate = logDate;
+      if (diffDays === 1) {
+        streak++;
+        checkDate = nextDate;
+      } else if (diffDays === 0) {
+        continue; // Multiple logs on the same day
       } else {
-        break;
+        break; // Gap found
       }
     }
   }

@@ -21,6 +21,7 @@ app.use('/api/appointments',            require('./src/routes/appointments'))
 app.use('/api/psychologist-dashboard',  require('./src/routes/psychologist-dashboard'))
 app.use('/api/admin',                   require('./src/routes/admin'))
 app.use('/api/messages',                require('./src/routes/messages'))
+app.use('/api/intake',                  require('./src/routes/intake'))
 
 // ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -62,7 +63,17 @@ app.use((err, req, res, next) => {
 
 // ─── START ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
+
+// Create HTTP server and bind Socket.IO
+const http = require('http')
+const server = http.createServer(app)
+const { initSocket } = require('./socket')
+
+const io = initSocket(server)
+// Make io accessible to routes if needed
+app.set('io', io)
+
+server.listen(PORT, () => {
   console.log(`\n🌿 CalmMind backend running on http://localhost:${PORT}`)
   console.log(`📋 Visit http://localhost:${PORT} to see all routes\n`)
 })

@@ -446,7 +446,7 @@ const SummaryPanel = () => (
           }}>📚</div>
           <div>
             <div style={{ fontFamily: fonts.display, fontSize: 13, fontWeight: 700, color: colors.text }}>Mood Trend Review</div>
-            <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: fonts.body }}>with Dr. Anya Sharma</div>
+            <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: fonts.body }}>with Anya Sharma</div>
           </div>
         </div>
         <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: fonts.body, fontWeight: 600, marginBottom: 14 }}>

@@ -85,22 +85,29 @@ const SectionLabel = ({ children }) => (
 // ─── Mood Selector ────────────────────────────────────────────────────────────
 const MoodSelector = ({ selected, onSelect }) => (
   <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-    {MOODS.map((m) => {
+    {MOODS.map((m, i) => {
       const isSelected = selected?.label === m.label;
       const filledDots = Math.round((m.value / MAX_MOOD_VALUE) * 5);
       return (
         <button
           key={m.label}
           onClick={() => onSelect(m)}
+          className={`slide-up stagger-${(i % 4) + 1}`}
           style={{
             display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
             padding: "16px 20px", borderRadius: 20,
             border: isSelected ? `2.5px solid ${m.color}` : `1.5px solid ${colors.border}`,
             background: isSelected ? m.bg : "#fff",
-            cursor: "pointer", transition: "all 0.2s",
+            cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             boxShadow: isSelected ? `0 6px 20px ${m.color}35` : "0 2px 8px rgba(0,0,0,0.04)",
-            transform: isSelected ? "translateY(-4px) scale(1.05)" : "none",
+            transform: isSelected ? "translateY(-6px) scale(1.05)" : "none",
             minWidth: 84,
+          }}
+          onMouseEnter={e => {
+            if (!isSelected) e.currentTarget.style.transform = "translateY(-4px)";
+          }}
+          onMouseLeave={e => {
+            if (!isSelected) e.currentTarget.style.transform = "translateY(0px)";
           }}
         >
           <span style={{ fontSize: 34, lineHeight: 1 }}>{m.emoji}</span>
@@ -127,22 +134,24 @@ const MoodSelector = ({ selected, onSelect }) => (
 // ─── Keyword Pills ────────────────────────────────────────────────────────────
 const KeywordPicker = ({ selected, onToggle }) => (
   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-    {KEYWORDS.map((k) => {
+    {KEYWORDS.map((k, i) => {
       const isOn = selected.includes(k.label);
       return (
         <button
           key={k.label}
           onClick={() => onToggle(k.label)}
+          className="fade-in"
           style={{
             display: "flex", alignItems: "center", gap: 6,
             padding: "7px 14px", borderRadius: radius.full,
             border: isOn ? `1.5px solid ${colors.purple}` : `1.5px solid ${colors.border}`,
             background: isOn ? colors.purpleSoft : "#fff",
-            cursor: "pointer", transition: "all 0.18s",
+            cursor: "pointer", transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             fontSize: 12, fontFamily: fonts.body, fontWeight: 700,
             color: isOn ? colors.purple : colors.textMid,
             boxShadow: isOn ? `0 2px 10px ${colors.purple}25` : "none",
-            transform: isOn ? "scale(1.03)" : "none",
+            transform: isOn ? "scale(1.04)" : "none",
+            animationDelay: `${i * 0.03}s`
           }}
         >
           <span style={{ fontSize: 14 }}>{k.emoji}</span>
@@ -315,16 +324,21 @@ const StatsRow = ({ entries }) => {
     ? (entries.reduce((s, e) => s + e.mood.value, 0) / total).toFixed(1)
     : "—";
   const best = entries.reduce((b, e) => e.mood.value > (b?.mood.value || 0) ? e : b, null);
-  const streak = (() => {
-    let s = 0;
-    const now = new Date();
-    for (let i = 1; i <= 30; i++) {
-      const d = new Date(now); d.setDate(now.getDate() - i);
-      if (entries.find(e => e.date.toDateString() === d.toDateString())) s++;
-      else break;
+  let streak = 0;
+  if (entries.length > 0) {
+    const uniqueDates = [...new Set(entries.map(e => e.date.toISOString().split('T')[0]))].sort().reverse();
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
+      streak = 1;
+      for (let i = 0; i < uniqueDates.length - 1; i++) {
+        const d1 = new Date(uniqueDates[i]);
+        const d2 = new Date(uniqueDates[i+1]);
+        if (Math.round((d1 - d2) / (1000 * 60 * 60 * 24)) === 1) streak++;
+        else break;
+      }
     }
-    return s;
-  })();
+  }
 
   const stats = [
     { label: "Entries Logged", value: total,                                                icon: "📊", color: colors.purple },

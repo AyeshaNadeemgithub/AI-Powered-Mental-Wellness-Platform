@@ -11,6 +11,26 @@ router.get('/', async (req, res) => {
   try {
     const userId = req.user.id
 
+    // ── Auto-Expire logic ────────────────────────────────────────────────
+    const now = new Date();
+    const pendingToComplete = await prisma.appointment.findMany({
+      where: {
+        patientId: userId,
+        status: { in: ['CONFIRMED', 'PENDING'] },
+      }
+    });
+    
+    const expiredIds = pendingToComplete
+      .filter(a => new Date(a.scheduledAt.getTime() + (a.durationMins || 50) * 60000) < now)
+      .map(a => a.id);
+
+    if (expiredIds.length > 0) {
+      await prisma.appointment.updateMany({
+        where: { id: { in: expiredIds } },
+        data: { status: 'COMPLETED' }
+      });
+    }
+
     // Use centralized stats (streak, totalPoints, etc)
     const stats = await getUserStats(userId).catch(err => {
       console.error('Stats fetch failed:', err)

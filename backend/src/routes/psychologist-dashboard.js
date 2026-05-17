@@ -3,6 +3,17 @@ const router  = express.Router()
 const prisma  = require('../lib/prisma')
 const { protect, requireRole } = require('../middleware/auth')
 
+const formatTherapistName = (user) => {
+  if (!user) return 'Therapist';
+  const first = (user.firstName || '').trim();
+  const last = (user.lastName || '').trim();
+  if (first.toLowerCase() === 'dr' || first.toLowerCase() === 'dr.') {
+    return last === '-' ? 'Therapist' : last;
+  }
+  if (!last || last === '-') return first;
+  return `${first} ${last}`;
+};
+
 router.use(protect)
 router.use(requireRole('PSYCHOLOGIST'))
 
@@ -31,6 +42,26 @@ router.get('/', async (req, res) => {
     const psychologistId = psychologist.id
     const weekOffset = parseInt(req.query.weekOffset) || 0
 
+    // ── Auto-Expire logic ────────────────────────────────────────────────
+    const now = new Date();
+    const pendingToComplete = await prisma.appointment.findMany({
+      where: {
+        psychologistId,
+        status: { in: ['CONFIRMED', 'PENDING'] },
+      }
+    });
+    
+    const expiredIds = pendingToComplete
+      .filter(a => new Date(a.scheduledAt.getTime() + (a.durationMins || 50) * 60000) < now)
+      .map(a => a.id);
+
+    if (expiredIds.length > 0) {
+      await prisma.appointment.updateMany({
+        where: { id: { in: expiredIds } },
+        data: { status: 'COMPLETED' }
+      });
+    }
+
     // ── Today's appointments ──────────────────────────────────────────────
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
@@ -41,7 +72,7 @@ router.get('/', async (req, res) => {
       where: {
         psychologistId,
         scheduledAt: { gte: todayStart, lte: todayEnd },
-        status: { in: ['PENDING', 'CONFIRMED'] }
+        status: { in: ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'] } // Need to show completed ones today too so they don't vanish
       },
       orderBy: { scheduledAt: 'asc' },
       include: {
@@ -186,7 +217,7 @@ router.get('/', async (req, res) => {
       psychologist: {
         id: psychologist.id,
         userId: psychologist.userId,
-        name: `Dr. ${psychologist.user.firstName} ${psychologist.user.lastName}`,
+        name: formatTherapistName(psychologist.user),
         firstName: psychologist.user.firstName,
         lastName: psychologist.user.lastName,
         email: psychologist.user.email,

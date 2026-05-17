@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import CardBox from "./CardBox";
 import MoodTrendChart from "./MoodTrendChart";
 import MoodBarChart from "./MoodBarChart";
+import { staffStyles } from "../../styles/staffDashboardStyles";
 
 /**
  * Right panel for Psychologist Schedule view.
@@ -81,55 +82,62 @@ export default function ScheduleRightPanel({ dashboardData, loading }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Urgent Cases */}
+      {/* Today's Appointments */}
       <CardBox style={{ marginBottom: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontWeight: 700, fontSize: 16, color: "#1E1B4B" }}>
-          <span style={{ fontSize: 18 }}>⚠️</span>
-          Urgent Cases
+        <div style={{ fontWeight: 700, fontSize: 18, color: "#1E1B4B", marginBottom: 16 }}>
+          Today's Appointments
         </div>
-        {urgentPatientName ? (
-          <div style={{ background: "#FFF0F6", borderRadius: 8, padding: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontWeight: 700, color: "#1E1B4B", fontSize: 14 }}>{urgentPatientName}</span>
-              {urgentStatus && (
-                <span style={{ background: "#EDE9FE", color: "#7C3AED", borderRadius: 6, padding: "2px 8px", fontWeight: 700, fontSize: 11 }}>
-                  {urgentStatus}
-                </span>
-              )}
-            </div>
-            <div style={{ color: "#9896B8", fontWeight: 500, fontSize: 13, marginBottom: 12 }}>
-              Recent Mood Trend Anomalies
-            </div>
-            <MoodTrendChart data={urgentChartData} />
-            <div style={{ marginTop: 12, padding: 10, background: "rgba(239,68,68,0.08)", borderRadius: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                <span style={{ fontSize: 12 }}>⚡</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#EF4444" }}>Critical Alert</span>
-              </div>
-              <span style={{ fontSize: 12, color: "#4C4682" }}>
-                {urgentReason}
-              </span>
-            </div>
+        {todaysAppts.length === 0 ? (
+          <div style={{ color: "#9896B8", fontSize: 14, fontWeight: 600, padding: "20px 0", textAlign: "center" }}>
+            📭 No appointments scheduled for today.
           </div>
         ) : (
-          <div style={{ color: "#9896B8", fontSize: 14, fontWeight: 600, padding: "16px 0", textAlign: "center" }}>
-            ✅ No urgent cases at this time.
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 300 }}>
+              <thead>
+                <tr style={staffStyles.tableHead}>
+                  <th style={staffStyles.tableCellLeft}>Patient</th>
+                  <th style={staffStyles.tableCellLeft}>Time</th>
+                  <th style={staffStyles.tableCellLeft}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {todaysAppts.map((appt, i) => {
+                  const patientName = formatName(appt.patient.firstName, appt.patient.lastName);
+                  const time = new Date(appt.scheduledAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                  const isFirst = i === 0;
+                  
+                  const diffMins = (new Date(appt.scheduledAt) - new Date()) / 60000;
+                  const hasLink = !!appt.meetingLink;
+                  const isJoinableNow = hasLink && appt.status !== "COMPLETED" && appt.status !== "CANCELLED" && diffMins <= 15 && diffMins >= -(appt.durationMins || 50);
+
+                  return (
+                    <tr key={appt.id} style={isFirst ? { background: "linear-gradient(135deg, #7C3AED, #8B5CF6)", color: "#fff" } : {}}>
+                      <td style={{ ...staffStyles.tableCell, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                        <span style={{ fontSize: 14 }}>{isFirst ? "👤" : <span style={{ color: "#9896B8" }}>👤</span>}</span>
+                        {patientName}
+                      </td>
+                      <td style={{ ...staffStyles.tableCell, fontSize: 12 }}>{time}</td>
+                      <td style={staffStyles.tableCell}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          {isJoinableNow ? (
+                            <a href={appt.meetingLink} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", padding: "4px 10px", borderRadius: 6, background: isFirst ? "#fff" : "#7C3AED", color: isFirst ? "#7C3AED" : "#fff", fontSize: 10, fontWeight: 800, animation: "pulse 2s infinite", whiteSpace: "nowrap" }}>Join ▶</a>
+                          ) : appt.status === "COMPLETED" ? (
+                            <span style={{ fontSize: 10, fontWeight: 700, color: isFirst ? "#fff" : "#10B981" }}>Completed</span>
+                          ) : appt.status === "CANCELLED" ? (
+                            <span style={{ fontSize: 10, fontWeight: 700, color: isFirst ? "#FCA5A5" : "#EF4444" }}>Cancelled</span>
+                          ) : (hasLink && appt.status === "CONFIRMED" && (
+                            <button disabled style={{ padding: "4px 8px", borderRadius: 6, background: isFirst ? "rgba(255,255,255,0.2)" : "#F3F4F6", color: isFirst ? "#fff" : "#9CA3AF", fontSize: 10, fontWeight: 700, border: "none", cursor: "not-allowed", whiteSpace: "nowrap" }} title="Link will activate 15 minutes before the session starts">Wait</button>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
-      </CardBox>
-
-      {/* Patient Overview */}
-      <CardBox style={{ marginBottom: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 16, color: "#1E1B4B", marginBottom: 12 }}>
-          Patient Overview
-        </div>
-        <ul style={{ color: "#4C4682", fontWeight: 600, fontSize: 14, paddingLeft: 16, margin: 0 }}>
-          <li>Total patients: {stats.totalPatients || 0}</li>
-          <li>Completed sessions: {stats.completedSessions || 0}</li>
-          <li>Pending sessions: {stats.pendingSessions || 0}</li>
-          <li>Confirmed sessions: {stats.confirmedSessions || 0}</li>
-        </ul>
-        <MoodBarChart />
       </CardBox>
 
 

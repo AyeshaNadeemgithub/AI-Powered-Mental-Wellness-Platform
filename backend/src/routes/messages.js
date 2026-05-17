@@ -11,7 +11,7 @@ router.use(protect)
 router.get('/conversations', async (req, res) => {
   try {
     const userId = req.user.id
-    const conversations = await prisma.conversation.findMany({
+    const rawConversations = await prisma.conversation.findMany({
       where: {
         OR: [
           { patientId: userId },
@@ -24,14 +24,54 @@ router.get('/conversations', async (req, res) => {
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1
+        },
+        _count: {
+          select: {
+            messages: {
+              where: {
+                senderId: { not: userId },
+                isRead: false
+              }
+            }
+          }
         }
       },
       orderBy: { lastMessageAt: 'desc' }
     })
+
+    const conversations = rawConversations.map(c => ({
+      ...c,
+      unreadCount: c._count.messages
+    }))
+
     res.json({ conversations })
   } catch (err) {
     console.error('[GET /messages/conversations]', err)
     res.status(500).json({ error: 'Could not fetch conversations.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/messages/unread-count — total unread messages across all chats
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/unread-count', async (req, res) => {
+  try {
+    const userId = req.user.id
+    const count = await prisma.message.count({
+      where: {
+        conversation: {
+          OR: [
+            { patientId: userId },
+            { psychologistId: userId }
+          ]
+        },
+        senderId: { not: userId },
+        isRead: false
+      }
+    })
+    res.json({ count })
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch unread count.' })
   }
 })
 
@@ -89,6 +129,30 @@ router.post('/', async (req, res) => {
       }
     })
 
+    // 4. Emit socket event
+    const io = req.app.get('io');
+    if (io) {
+      const messageWithSender = await prisma.message.findUnique({
+        where: { id: message.id },
+        include: { sender: { select: { id: true, firstName: true, avatarUrl: true } } }
+      });
+      io.to(`conv_${conversation.id}`).emit('new_message', messageWithSender);
+
+      // Global notification for toast
+      const { getConnectedUsers } = require('../../socket');
+      const connectedUsers = getConnectedUsers();
+      const recipientId = conversation.patientId === senderId ? conversation.psychologistId : conversation.patientId;
+      const recipientSocketId = connectedUsers.get(recipientId);
+      
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit('message_notification', {
+          conversationId: conversation.id,
+          content: content,
+          senderName: sender.firstName
+        });
+      }
+    }
+
     res.status(201).json({ message })
   } catch (err) {
     console.error('[POST /messages]', err)
@@ -123,6 +187,40 @@ router.get('/:conversationId', async (req, res) => {
   } catch (err) {
     console.error('[GET /messages/:id]', err)
     res.status(500).json({ error: 'Could not fetch messages.' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /api/messages/:conversationId — delete a conversation
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete('/:conversationId', async (req, res) => {
+  try {
+    const { conversationId } = req.params
+    const userId = req.user.id
+
+    // Verify user is part of conversation
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId }
+    })
+
+    if (!conversation || (conversation.patientId !== userId && conversation.psychologistId !== userId)) {
+      return res.status(403).json({ error: 'Unauthorized to delete this conversation.' })
+    }
+
+    // Delete messages first (Prisma might handle this with cascade, but let's be safe)
+    await prisma.message.deleteMany({
+      where: { conversationId }
+    })
+
+    // Delete conversation
+    await prisma.conversation.delete({
+      where: { id: conversationId }
+    })
+
+    res.json({ success: true, message: 'Conversation deleted.' })
+  } catch (err) {
+    console.error('[DELETE /messages/:id]', err)
+    res.status(500).json({ error: 'Could not delete conversation.' })
   }
 })
 

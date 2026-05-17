@@ -11,16 +11,14 @@ export const Logo = ({ size = "md", dark = false }) => {
 
   return (
     <img
-      src="/calmmind-logo.jpeg"
+      src="/final_logo-removebg-preview.png"
       alt="CalmMind"
       style={{
         height: height,
         width: "auto",
         objectFit: "contain",
-        // Use multiply for light backgrounds, but normal for dark backgrounds
-        mixBlendMode: dark ? "normal" : "multiply",
         display: "block",
-        filter: dark ? "brightness(1.2)" : "none",
+        filter: dark ? "brightness(0) invert(1)" : "none", // For white logo on dark footer
       }}
     />
   );
@@ -28,13 +26,12 @@ export const Logo = ({ size = "md", dark = false }) => {
 
 export const LogoMark = () => (
   <img
-    src="/calmmind-logo.jpeg"
+    src="/final_logo-removebg-preview.png"
     alt="CalmMind"
     style={{
       height: 40,
       width: "auto",
       objectFit: "contain",
-      mixBlendMode: "multiply",
       display: "block",
     }}
   />

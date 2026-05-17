@@ -7,6 +7,8 @@ import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import { colors, fonts, radius, shadows } from "../styles/theme";
 import * as api from "../api";
+import { getSocket } from "../socket";
+import Toast from "../components/ui/Toast";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -37,7 +39,7 @@ const HeroBanner = ({ firstName }) => {
         </p>
         <Button onClick={() => navigate("/chat")} size="md">Get Started →</Button>
       </div>
-      <MeditationSVG size={170} />
+
     </div>
   );
 };
@@ -111,6 +113,24 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (socket) {
+      socket.on("message_notification", (data) => {
+        setToast({ 
+          title: data.title || "New Message", 
+          message: data.content,
+          type: data.title?.includes("Confirmed") ? "success" : "info"
+        });
+        fetchDashboard(); // Refresh data to show new notification in list
+      });
+    }
+    return () => {
+      if (socket) socket.off("message_notification");
+    };
+  }, []);
 
   const fetchDashboard = async () => {
     try {
@@ -129,7 +149,30 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) return <div style={{ padding: 40, fontFamily: fonts.body, color: colors.textMuted }}>Loading dashboard...</div>;
+  if (loading) {
+    return (
+      <div style={{ 
+        height: "80vh", display: "flex", flexDirection: "column", 
+        alignItems: "center", justifyContent: "center", gap: 20 
+      }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%",
+          border: `3px solid ${colors.purpleSoft}`,
+          borderTopColor: colors.purple,
+          animation: "spin 1s linear infinite"
+        }} />
+        <div style={{ 
+          fontFamily: fonts.body, color: colors.textMuted, 
+          fontSize: 14, fontWeight: 600, letterSpacing: "0.02em" 
+        }}>
+          Curating your wellness space...
+        </div>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
   if (!data) return (
     <div style={{ padding: 40, fontFamily: fonts.body }}>
       <div style={{ color: colors.red, fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Error loading dashboard data.</div>
@@ -142,8 +185,10 @@ const Dashboard = () => {
       <HeroBanner firstName={data.firstName} />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.7fr", gap: 20, marginBottom: 20 }}>
-        <StreakCard streak={data.streak} totalPoints={data.totalPoints} badges={data.userBadges} />
-        <Card style={{ gridColumn: "span 1" }}>
+        <div className="slide-up stagger-1">
+          <StreakCard streak={data.streak} totalPoints={data.totalPoints} badges={data.userBadges} />
+        </div>
+        <Card className="slide-up stagger-2" style={{ gridColumn: "span 1" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontFamily: fonts.body, color: colors.textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Past 7 Days Mood Trend
@@ -156,23 +201,32 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
-        <Card>
-          <div style={{ fontSize: 22, marginBottom: 10 }}>📅</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
+        <Card className="hover-lift slide-up stagger-1">
+          <div style={{ fontSize: 22, marginBottom: 10 }} className="float-subtle">📅</div>
           <div style={{ fontFamily: fonts.display, fontSize: 16, fontWeight: 700, color: colors.text, marginBottom: 8 }}>
-            Next Session
+            Upcoming Sessions
           </div>
-          <p style={{ fontSize: 12, fontFamily: fonts.body, color: colors.textMuted, lineHeight: 1.65, marginBottom: 14, fontWeight: 600 }}>
-            {data.upcomingAppointments?.length > 0
-              ? `You have a session with ${data.upcomingAppointments[0].psychologist.user.firstName} ${data.upcomingAppointments[0].psychologist.user.lastName}`
-              : "No upcoming sessions. Book your check-in to stay on track."}
-          </p>
-          <Button variant="secondary" size="sm" onClick={() => navigate("/appointments")}>
-            {data.upcomingAppointments?.length > 0 ? "View Details" : "Book Now →"}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            {data.upcomingAppointments?.length > 0 ? (
+              data.upcomingAppointments.slice(0, 2).map((appt, i) => (
+                <div key={i} style={{ fontSize: 11, fontWeight: 600, color: colors.textMid, padding: "8px 10px", background: colors.bg, borderRadius: 8 }}>
+                  <b>{appt.psychologist.user.firstName}</b> — {new Date(appt.scheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(appt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              ))
+            ) : (
+              <p style={{ fontSize: 12, fontFamily: fonts.body, color: colors.textMuted, fontWeight: 600 }}>No upcoming sessions. Book a check-in to stay on track.</p>
+            )}
+            {data.upcomingAppointments?.length > 2 && (
+              <div style={{ fontSize: 10, color: colors.purple, fontWeight: 700 }}>+ {data.upcomingAppointments.length - 2} more sessions</div>
+            )}
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => navigate("/appointments")} fullWidth className="hover-scale-sm">
+            {data.upcomingAppointments?.length > 0 ? "Manage Sessions" : "Book Now →"}
           </Button>
         </Card>
 
-        <Card>
+        <Card className="hover-lift slide-up stagger-2">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <div style={{
               width: 38, height: 38, borderRadius: 10,
@@ -186,12 +240,14 @@ const Dashboard = () => {
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {data.userBadges?.length > 0 ? data.userBadges.slice(0, 4).map((ub, i) => (
-              <span key={i} title={ub.badge.name} style={{ fontSize: 18 }}>{ub.badge.emoji}</span>
+              <span key={i} title={ub.badge.name} style={{ fontSize: 18 }} className="float-subtle">
+                {ub.badge.emoji}
+              </span>
             )) : <span style={{ fontSize: 12, color: colors.textMuted }}>No badges yet.</span>}
           </div>
         </Card>
 
-        <Card>
+        <Card className="hover-lift slide-up stagger-3">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <div style={{
               width: 38, height: 38, borderRadius: 10,
@@ -203,9 +259,42 @@ const Dashboard = () => {
               <div style={{ fontFamily: fonts.display, fontSize: 14, fontWeight: 700, color: colors.text }}>Check in</div>
             </div>
           </div>
-          <Button variant="primary" size="sm" fullWidth onClick={() => navigate("/mood")}>Log My Mood</Button>
+          <Button variant="primary" size="sm" fullWidth onClick={() => navigate("/mood")} className="hover-scale-sm">Log My Mood</Button>
         </Card>
       </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
+        <Card className="slide-up stagger-4">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 700, color: colors.text }}>
+              Recent Notifications
+            </div>
+            {data.unreadCount > 0 && (
+              <Badge variant="purple">{data.unreadCount} New</Badge>
+            )}
+          </div>
+          <div style={{ maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
+            {data.notifications?.length > 0 ? (
+              data.notifications.map((notif) => (
+                <NotificationItem key={notif.id} notif={notif} />
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "20px 0", color: colors.textMuted, fontSize: 13, fontWeight: 600 }}>
+                No recent notifications.
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {toast && (
+        <Toast 
+          title={toast.title}
+          message={toast.message} 
+          type={toast.type}
+          onClose={() => setToast(null)} 
+        />
+      )}
     </div>
   );
 };
