@@ -20,6 +20,7 @@ export default function TherapistSignup() {
   const [form, setForm] = useState({
     fullName: "", verificationType: "DEGREE", verificationDetail: "", email: "", phone: "",
     specialization: "", yearsExp: "", password: "", confirmPassword: "",
+    fileName: "", fileBase64: "",
   });
 
   const [showPass,    setShowPass]    = useState(false);
@@ -35,10 +36,23 @@ export default function TherapistSignup() {
     setApiError("");
   }
 
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm((f) => ({ ...f, fileName: file.name, fileBase64: reader.result }));
+        setErrors((err) => ({ ...err, file: "" }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   function validate() {
     const e = {};
     if (!form.fullName.trim())           e.fullName           = "Full name is required";
     if (!form.verificationDetail.trim()) e.verificationDetail = "Document detail is required";
+    if (!form.fileName)                  e.file               = "Please upload document picture";
     if (!form.email.trim())         e.email         = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
     if (!form.phone.trim())         e.phone         = "Phone number is required";
@@ -66,7 +80,7 @@ export default function TherapistSignup() {
         email:              form.email,
         phone:              form.phone,
         verificationType:   form.verificationType,
-        verificationDetail: form.verificationDetail,
+        verificationDetail: `${form.verificationDetail} (Uploaded: ${form.fileName})`,
         specialization:     form.specialization,
         yearsExp:           form.yearsExp,
         password:           form.password,
@@ -166,26 +180,11 @@ export default function TherapistSignup() {
         )}
 
         <div style={styles.grid}>
-          <div>
+          <div style={{ gridColumn: "1 / -1" }}>
             <label style={labelStyle}>Full Name</label>
             <input type="text" placeholder="Sarah Ahmed" value={form.fullName}
               onChange={(e) => set("fullName", e.target.value)} style={inputStyle("fullName")} />
             {errors.fullName && <span style={styles.errMsg}>{errors.fullName}</span>}
-          </div>
-
-          <div>
-            <label style={labelStyle}>Verification Document</label>
-            <div style={{ display: "flex", gap: 10 }}>
-              <select value={form.verificationType} onChange={(e) => set("verificationType", e.target.value)}
-                style={{ ...inputStyle("verificationType"), width: "120px", padding: "14px 8px" }}>
-                <option value="DEGREE">Degree</option>
-                <option value="CERTIFICATE">Certificate</option>
-                <option value="CARD">ID Card</option>
-              </select>
-              <input type="text" placeholder="Document Name or ID" value={form.verificationDetail}
-                onChange={(e) => set("verificationDetail", e.target.value)} style={inputStyle("verificationDetail")} />
-            </div>
-            {(errors.verificationType || errors.verificationDetail) && <span style={styles.errMsg}>Required for verification</span>}
           </div>
 
           <div>
@@ -243,6 +242,51 @@ export default function TherapistSignup() {
               </button>
             </div>
             {errors.confirmPassword && <span style={styles.errMsg}>{errors.confirmPassword}</span>}
+          </div>
+
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>Verification Document</label>
+            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <select value={form.verificationType} onChange={(e) => set("verificationType", e.target.value)}
+                style={{ ...inputStyle("verificationType"), width: "120px", padding: "14px 8px" }}>
+                <option value="DEGREE">Degree</option>
+                <option value="CERTIFICATE">Certificate</option>
+                <option value="CARD">ID Card</option>
+              </select>
+              <input type="text" placeholder="Document Name or ID" value={form.verificationDetail}
+                onChange={(e) => set("verificationDetail", e.target.value)} style={inputStyle("verificationDetail")} />
+            </div>
+            
+            {/* File Upload Field */}
+            <div style={{ 
+              border: `1.5px dashed ${errors.file ? colors.red : colors.tealBorder}`, 
+              borderRadius: 14, 
+              padding: "10px 14px", 
+              background: colors.tealSoft, 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between",
+              gap: 12
+            }}>
+              <span style={{ fontSize: 13, color: form.fileName ? colors.text : colors.textMuted, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }}>
+                {form.fileName || "No file uploaded"}
+              </span>
+              <label style={{ 
+                padding: "8px 14px", 
+                background: colors.teal, 
+                color: "#fff", 
+                borderRadius: 10, 
+                fontSize: 12, 
+                fontWeight: 700, 
+                cursor: "pointer",
+                boxShadow: `0 4px 12px ${colors.teal}30`
+              }}>
+                Upload File
+                <input type="file" accept="image/*,.pdf" onChange={handleFileChange} style={{ display: "none" }} />
+              </label>
+            </div>
+            {errors.file && <span style={styles.errMsg}>{errors.file}</span>}
+            {(errors.verificationType || errors.verificationDetail) && errors.verificationDetail && <span style={styles.errMsg}>Required for verification</span>}
           </div>
 
           <div style={{ gridColumn: "1 / -1" }}>

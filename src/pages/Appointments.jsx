@@ -138,8 +138,8 @@ const BookingModal = ({ therapist, onClose, onConfirm, loading }) => {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(30,20,10,0.5)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "#fff", borderRadius: 28, width: "100%", maxWidth: step === 1 ? 800 : 450, boxShadow: `0 24px 80px ${ac}30`, border: `1px solid ${warm.sand}`, overflow: "hidden", transition: "max-width 0.3s ease" }}>
+    <div className="mobile-padding-sm" style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(30,20,10,0.5)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: "#fff", borderRadius: 28, width: "100%", maxWidth: step === 1 ? 800 : 450, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: `0 24px 80px ${ac}30`, border: `1px solid ${warm.sand}`, overflow: "hidden", transition: "max-width 0.3s ease" }}>
 
         <div style={{ background: "linear-gradient(135deg, #EDE9FE 0%, #F5EFE8 100%)", padding: "20px 24px", borderBottom: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -152,13 +152,15 @@ const BookingModal = ({ therapist, onClose, onConfirm, loading }) => {
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 8, background: colors.purpleSoft, border: `1px solid ${colors.border}`, cursor: "pointer", fontSize: 14 }}>✕</button>
         </div>
 
-        <div style={{ padding: "24px" }}>
+        <div className="mobile-padding-sm" style={{ padding: "24px", overflowY: "auto", flex: 1 }}>
           {step === 1 && (
             <div className="responsive-grid-2" style={{ gap: 24 }}>
               <div>
                 <SectionLabel color={ac}>1. Choose Date</SectionLabel>
-                <div style={{ border: "1px solid #E5E7EB", borderRadius: 16, padding: 8 }}>
-                  <Calendar onChange={setSelectedDate} value={selectedDate} minDate={new Date()} className="booking-calendar" />
+                <div className="mobile-overflow-x" style={{ border: "1px solid #E5E7EB", borderRadius: 16, padding: 8 }}>
+                  <div style={{ minWidth: 280 }}>
+                    <Calendar onChange={setSelectedDate} value={selectedDate} minDate={new Date()} className="booking-calendar" />
+                  </div>
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -262,7 +264,13 @@ const BookingModal = ({ therapist, onClose, onConfirm, loading }) => {
           )}
         </div>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }`}</style>
+      <style>{`
+        .booking-calendar { width: 100% !important; border: none !important; font-family: inherit !important; }
+        .react-calendar__tile--active { background: ${ac} !important; border-radius: 8px; color: white !important; }
+        .react-calendar__tile:hover { border-radius: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } } 
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+      `}</style>
     </div>
   );
 };

@@ -38,14 +38,19 @@ function ScheduleView({ data, loading, weekOffset, setWeekOffset }) {
   const todaysAppts = data?.todaysAppointments || [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <CardBox>
-        <WeekCalendarGrid 
-          appointments={data?.weekAppointments || []} 
-          weekOffset={weekOffset}
-          setWeekOffset={setWeekOffset}
-        />
-      </CardBox>
+    <div className="responsive-grid-1-350">
+      <div className="mobile-overflow-x">
+        <CardBox>
+          <WeekCalendarGrid 
+            appointments={data?.weekAppointments || []} 
+            weekOffset={weekOffset}
+            setWeekOffset={setWeekOffset}
+          />
+        </CardBox>
+      </div>
+      <div>
+        <ScheduleRightPanel dashboardData={data} loading={loading} />
+      </div>
     </div>
   );
 }
@@ -649,7 +654,7 @@ function ChatView({ data, loading }) {
           <div style={{ padding: "0 16px 12px", borderBottom: "1px solid #E5E1F8", fontWeight: 700, color: "#1E1B4B", fontSize: 13 }}>
             All Patients
           </div>
-          <div style={{ maxHeight: 500, overflowY: "auto" }}>
+          <div className="mobile-chat-list" style={{ maxHeight: 500, overflowY: "auto" }}>
             {patients.length === 0 ? (
               <div style={{ padding: 20, textAlign: "center", color: "#9896B8", fontSize: 12 }}>No patients yet.</div>
             ) : (
@@ -681,7 +686,7 @@ function ChatView({ data, loading }) {
         </CardBox>
 
         {/* Right: Chat Window */}
-        <CardBox style={{ display: "flex", flexDirection: "column", height: 600, padding: 0, overflow: "hidden" }}>
+        <CardBox className="mobile-chat-window" style={{ display: "flex", flexDirection: "column", height: 600, padding: 0, overflow: "hidden" }}>
           {!activeConv ? (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#9896B8", gap: 12 }}>
               <span style={{ fontSize: 40 }}>💬</span>

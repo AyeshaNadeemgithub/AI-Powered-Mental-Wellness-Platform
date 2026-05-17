@@ -86,7 +86,7 @@ export default function WeekCalendarGrid({ appointments = [], weekOffset, setWee
           <button onClick={() => setWeekOffset(o => o + 1)} style={{ background: "transparent", border: "1px solid #E5E1F8", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, color: "#4C4682" }}>›</button>
         </div>
       </div>
-      <div style={{ position: "relative" }}>
+      <div className="mobile-overflow-x" style={{ position: "relative" }}>
         {showNowMarker && (
           <div style={{
             position: "absolute", 
@@ -99,7 +99,7 @@ export default function WeekCalendarGrid({ appointments = [], weekOffset, setWee
             <div style={{ position: "absolute", left: -5, top: -4, width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
           </div>
         )}
-        <div key={weekOffset} style={{ display: "grid", gridTemplateColumns: "60px repeat(7, 1fr)", gridTemplateRows: `40px repeat(${TIME_SLOTS.length}, 48px)`, border: "1px solid #E5E1F8", borderRadius: 12, overflow: "hidden" }}>
+        <div key={weekOffset} style={{ display: "grid", gridTemplateColumns: "60px repeat(7, 1fr)", gridTemplateRows: `40px repeat(${TIME_SLOTS.length}, 48px)`, border: "1px solid #E5E1F8", borderRadius: 12, overflow: "hidden", minWidth: 650 }}>
           <div />
           {weekDays.map((day, i) => (
             <div key={day.label} style={{ background: (weekOffset === 0 && i === currentDayIdx) ? "#EDE9FE" : "#F5F3FF", padding: "10px 8px", fontSize: 12, fontWeight: 700, color: (weekOffset === 0 && i === currentDayIdx) ? "#7C3AED" : "#4C4682", textAlign: "center", borderBottom: "1px solid #E5E1F8" }}>

@@ -103,7 +103,7 @@ const Navbar = () => {
   });
 
   return (
-    <nav style={{
+    <nav className="mobile-nav-padding" style={{
       display: "flex", alignItems: "center", justifyContent: "space-between",
       padding: scrolled ? "12px 60px" : "20px 60px",
       background: scrolled ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.8)",
@@ -114,9 +114,9 @@ const Navbar = () => {
       transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
     }}>
       <div className="hover-scale-sm"><Logo /></div>
-      <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-        <a href="#features" className="hover-glow" onClick={() => setActiveTab("features")} style={navLinkStyle("features")}>Features</a>
-        <a href="#therapists" className="hover-glow" onClick={() => setActiveTab("therapists")} style={navLinkStyle("therapists")}>Therapists</a>
+      <div className="mobile-gap-sm" style={{ display: "flex", alignItems: "center", gap: 32 }}>
+        <a href="#features" className="hover-glow mobile-hide" onClick={() => setActiveTab("features")} style={navLinkStyle("features")}>Features</a>
+        <a href="#therapists" className="hover-glow mobile-hide" onClick={() => setActiveTab("therapists")} style={navLinkStyle("therapists")}>Therapists</a>
         <a
           onClick={() => navigate("/login")}
           className="hover-glow"
@@ -202,7 +202,7 @@ const Hero = () => {
         zIndex: 1,
       }} />
       <FloatingSparkles />
-      <div style={{ position: "relative", zIndex: 2, padding: "64px 80px", maxWidth: 560 }}>
+      <div className="mobile-padding-x mobile-padding-y" style={{ position: "relative", zIndex: 2, padding: "64px 80px", maxWidth: 560 }}>
         <div className="zoom-in" style={{
           display: "inline-flex", alignItems: "center", gap: 6,
           background: "rgba(255,255,255,0.15)", color: "#fff",
@@ -211,7 +211,7 @@ const Hero = () => {
           marginBottom: 24, border: "1px solid rgba(255,255,255,0.3)",
           fontFamily: fonts.body, backdropFilter: "blur(8px)",
         }}>✦ Mental Wellness Platform</div>
-        <h1 className="rotate-in" style={{
+        <h1 className="rotate-in mobile-hero-title" style={{
           fontFamily: fonts.display, fontSize: 56, fontWeight: 700,
           color: "#fff", lineHeight: 1.08, marginBottom: 20, letterSpacing: "-0.02em",
         }}>
@@ -296,14 +296,14 @@ const AnimatedCounter = ({ valueStr }) => {
 
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 const StatsBar = () => (
-  <div style={{
+  <div className="mobile-flex-wrap" style={{
     display: "flex", background: "#fff",
     borderTop: `1.5px solid ${colors.border}`,
     borderBottom: `1.5px solid ${colors.border}`,
   }}>
     {STATS.map((s, i) => (
       <div key={i} className="fade-in" style={{
-        flex: 1, padding: "32px 16px", textAlign: "center",
+        flex: 1, minWidth: 140, padding: "32px 16px", textAlign: "center",
         borderRight: i < STATS.length - 1 ? `1.5px solid ${colors.border}` : "none",
         animationDelay: `${i * 0.15}s`
       }}>
@@ -321,7 +321,7 @@ const Features = () => {
   const [hov, setHov] = useState(null);
   const revealRef = useScrollReveal();
   return (
-    <section id="features" style={{ padding: "100px 80px", background: colors.bg }}>
+    <section id="features" className="mobile-section-padding" style={{ padding: "100px 80px", background: colors.bg }}>
       <div ref={revealRef} style={{ textAlign: "center", marginBottom: 64 }} className="reveal-on-scroll">
         <div style={{ fontSize: 11, fontWeight: 800, color: colors.purple, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12, fontFamily: fonts.body }}>
           Everything You Need
@@ -402,7 +402,7 @@ const Therapists = () => {
   const revealRef = useScrollReveal();
 
   return (
-    <section id="therapists" style={{ padding: "100px 80px", background: "#fff" }}>
+    <section id="therapists" className="mobile-section-padding" style={{ padding: "100px 80px", background: "#fff" }}>
       <div ref={revealRef} style={{ textAlign: "center", marginBottom: 64 }} className="reveal-on-scroll">
         <div style={{ fontSize: 11, fontWeight: 800, color: colors.purple, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12, fontFamily: fonts.body }}>
           Expert Care
@@ -482,8 +482,8 @@ const CTA = () => {
   const navigate = useNavigate();
   const revealRef = useScrollReveal();
   return (
-    <section style={{ padding: "100px 80px", background: "#fff" }}>
-      <div ref={revealRef} className="reveal-on-scroll" style={{
+    <section className="mobile-section-padding" style={{ padding: "100px 80px", background: "#fff" }}>
+      <div ref={revealRef} className="reveal-on-scroll mobile-section-padding" style={{
         maxWidth: 900, margin: "0 auto",
         background: `linear-gradient(135deg, ${colors.purpleSoft} 0%, #EDE9FE 100%)`,
         borderRadius: 40, padding: "80px",
@@ -515,7 +515,7 @@ const CTA = () => {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 const Footer = () => (
-  <footer style={{ background: "#1E1B4B", color: "#fff", padding: "64px 80px 32px" }}>
+  <footer className="mobile-section-padding" style={{ background: "#1E1B4B", color: "#fff", padding: "64px 80px 32px" }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 48, flexWrap: "wrap", gap: 32 }}>
       <div className="hover-scale-sm"><Logo dark /></div>
       <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>

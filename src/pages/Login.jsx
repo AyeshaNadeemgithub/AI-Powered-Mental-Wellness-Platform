@@ -98,7 +98,7 @@ export default function Login() {
           <div style={styles.fadeIn}>
             <h1 style={styles.heading}>Welcome back.</h1>
             <p style={styles.subheading}>How will you join us today?</p>
-            <div style={styles.rolesGrid}>
+            <div className="responsive-grid-3" style={styles.rolesGrid}>
               {roles.map((role) => {
                 const isHovered = hoveredRole === role.id;
                 return (
@@ -268,7 +268,7 @@ const styles = {
   fadeIn: { animation: "fadeUp 0.4s ease both" },
   heading: { fontFamily: "'Playfair Display', serif", fontSize: 42, fontWeight: 800, color: "#1E1B4B", letterSpacing: "-1px", textAlign: "center", lineHeight: 1.1 },
   subheading: { fontSize: 16, color: "#9896B8", textAlign: "center", marginTop: 8, marginBottom: 36, fontWeight: 500 },
-  rolesGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 32 },
+  rolesGrid: { gap: 18, marginBottom: 32 },
   roleCard: { borderRadius: 20, border: "1.5px solid", padding: "28px 18px 22px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)", cursor: "pointer" },
   roleEmoji: { fontSize: 48, lineHeight: 1, animation: "pulse 3s ease-in-out infinite" },
   roleLabel: { fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: "#1E1B4B" },
