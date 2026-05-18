@@ -5,10 +5,14 @@ require('dotenv').config()
 const app = express()
 
 // ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
+
 app.use(cors({
-  origin:      ['http://localhost:3000', 'http://localhost:3001'],  // your React app
+  origin: [
+    "http://localhost:3000",
+    "https://your-app.vercel.app"
+  ],
   credentials: true
-}))
+}));
 app.use(express.json())
 
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
