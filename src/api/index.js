@@ -5,7 +5,8 @@
 // Token is stored in localStorage under 'calmmind_token'.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE = 'http://localhost:5000/api'
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const BASE = BASE_URL
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 const getToken = () => localStorage.getItem('calmmind_token')
