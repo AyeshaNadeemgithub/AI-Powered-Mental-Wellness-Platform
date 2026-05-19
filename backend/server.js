@@ -6,11 +6,15 @@ const app = express()
 
 // ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : [
+      "http://localhost:3000",
+      "https://your-app.vercel.app"
+    ];
+
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://your-app.vercel.app"
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json())

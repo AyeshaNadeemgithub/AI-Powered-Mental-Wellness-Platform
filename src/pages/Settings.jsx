@@ -361,7 +361,8 @@ const Settings = () => {
   const handleExportData = async () => {
     try {
       const token = localStorage.getItem("calmmind_token");
-      const res = await fetch("http://localhost:5000/api/auth/export-data", {
+      const apiBase = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+      const res = await fetch(`${apiBase}/auth/export-data`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const blob = await res.blob();
