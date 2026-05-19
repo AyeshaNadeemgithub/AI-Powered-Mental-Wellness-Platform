@@ -35,22 +35,16 @@ const menuItems = [
 
 function ScheduleView({ data, loading, weekOffset, setWeekOffset }) {
   if (loading && !data) return <div style={{ padding: 20, color: "#9896B8" }}>Loading schedule...</div>;
-  const todaysAppts = data?.todaysAppointments || [];
 
   return (
-    <div className="responsive-grid-1-350">
-      <div className="mobile-overflow-x">
-        <CardBox>
-          <WeekCalendarGrid 
-            appointments={data?.weekAppointments || []} 
-            weekOffset={weekOffset}
-            setWeekOffset={setWeekOffset}
-          />
-        </CardBox>
-      </div>
-      <div>
-        <ScheduleRightPanel dashboardData={data} loading={loading} />
-      </div>
+    <div className="mobile-overflow-x">
+      <CardBox>
+        <WeekCalendarGrid 
+          appointments={data?.weekAppointments || []} 
+          weekOffset={weekOffset}
+          setWeekOffset={setWeekOffset}
+        />
+      </CardBox>
     </div>
   );
 }
