@@ -36,6 +36,8 @@ app.get('/', (req, res) => {
   res.json({
     message: '🌿 CalmMind API is running!',
     version: '1.0.0',
+    allowedOrigins: allowedOrigins,
+    rawEnv: process.env.ALLOWED_ORIGINS,
     routes: [
       'POST /api/auth/patient-signup',
       'POST /api/auth/therapist-signup',
