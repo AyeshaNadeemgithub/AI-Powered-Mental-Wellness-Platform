@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MeditationSVG } from "../components/ui/Brand";
 import MoodChart from "../components/ui/MoodChart";
@@ -12,7 +12,7 @@ import Toast from "../components/ui/Toast";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const HeroBanner = ({ firstName }) => {
+const HeroBanner = memo(({ firstName }) => {
   const navigate = useNavigate();
   return (
     <div style={{
@@ -42,9 +42,9 @@ const HeroBanner = ({ firstName }) => {
 
     </div>
   );
-};
+});
 
-const StreakCard = ({ streak, totalPoints, badges = [] }) => (
+const StreakCard = memo(({ streak, totalPoints, badges = [] }) => (
   <Card>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -79,9 +79,9 @@ const StreakCard = ({ streak, totalPoints, badges = [] }) => (
       Current Points: <span style={{ color: colors.purple }}>{totalPoints} ⭐</span>
     </div>
   </Card>
-);
+));
 
-const NotificationItem = ({ notif }) => (
+const NotificationItem = memo(({ notif }) => (
   <div style={{
     padding: "14px 18px",
     borderRadius: radius.md,
@@ -107,7 +107,7 @@ const NotificationItem = ({ notif }) => (
       <div style={{ width: 8, height: 8, borderRadius: "50%", background: colors.purple }} />
     )}
   </div>
-);
+));
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -145,7 +145,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboard();
-    const interval = setInterval(fetchDashboard, 10000);
+    // Increase polling interval on mobile for better performance
+    const pollInterval = window.innerWidth < 768 ? 15000 : 10000;
+    const interval = setInterval(fetchDashboard, pollInterval);
     return () => clearInterval(interval);
   }, []);
 
@@ -299,4 +301,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default memo(Dashboard);

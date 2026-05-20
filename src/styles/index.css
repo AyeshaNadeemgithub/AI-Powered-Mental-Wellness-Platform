@@ -37,6 +37,24 @@ a { text-decoration: none; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── MOBILE PERFORMANCE OPTIMIZATIONS ─── */
+@media (max-width: 768px) {
+  /* Reduce animation duration on mobile */
+  .page-enter {
+    animation-duration: 0.3s;
+  }
+  
+  /* Disable expensive blur filters on mobile */
+  body {
+    transition: none !important;
+  }
+  
+  /* Reduce shadow complexity on mobile */
+  .card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  }
+}
+
 /* ─── MINIMALISTIC ANIMATIONS ─── */
 
 .fade-in {

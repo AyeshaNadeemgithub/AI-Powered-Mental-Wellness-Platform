@@ -93,15 +93,12 @@ export const ThemeProvider = ({ children }) => {
   const [colorMode, setColorModeRaw] = useState(saved.colorMode || "light");
   const [accentKey, setAccentKeyRaw] = useState(saved.accentKey || "purple");
   const [fontSize,  setFontSizeRaw]  = useState(saved.fontSize  || "medium");
-  const [tick, setTick] = useState(0);
 
-  const bump = () => setTick(t => t + 1);
+  const setColorMode = useCallback((v) => { setColorModeRaw(v); applyTheme(accentKey, v, fontSize); localStorage.setItem(STORAGE_KEY, JSON.stringify({ colorMode: v, accentKey, fontSize })); }, [accentKey, fontSize]);
+  const setAccentKey = useCallback((v) => { setAccentKeyRaw(v); applyTheme(v, colorMode, fontSize); localStorage.setItem(STORAGE_KEY, JSON.stringify({ colorMode, accentKey: v, fontSize })); }, [colorMode, fontSize]);
+  const setFontSize  = useCallback((v) => { setFontSizeRaw(v); applyTheme(accentKey, colorMode, v); localStorage.setItem(STORAGE_KEY, JSON.stringify({ colorMode, accentKey, fontSize: v })); }, [colorMode, accentKey]);
 
-  const setColorMode = useCallback((v) => { setColorModeRaw(v); bump(); localStorage.setItem(STORAGE_KEY, JSON.stringify({ colorMode: v,        accentKey, fontSize })); }, [accentKey, fontSize]);
-  const setAccentKey = useCallback((v) => { setAccentKeyRaw(v); bump(); localStorage.setItem(STORAGE_KEY, JSON.stringify({ colorMode, accentKey: v, fontSize })); }, [colorMode, fontSize]);
-  const setFontSize  = useCallback((v) => { setFontSizeRaw(v);  bump(); localStorage.setItem(STORAGE_KEY, JSON.stringify({ colorMode, accentKey, fontSize: v  })); }, [colorMode, accentKey]);
-
-  useEffect(() => { applyTheme(accentKey, colorMode, fontSize); }, [accentKey, colorMode, fontSize, tick]);
+  useEffect(() => { applyTheme(accentKey, colorMode, fontSize); }, [accentKey, colorMode, fontSize]);
 
   return (
     <ThemeContext.Provider value={{ colorMode, setColorMode, accentKey, setAccentKey, fontSize, setFontSize, tick }}>

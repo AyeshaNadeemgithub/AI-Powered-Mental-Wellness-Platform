@@ -189,6 +189,7 @@ const Hero = () => {
       <img
         src="/hero-image.png"
         alt=""
+        loading="lazy"
         style={{
           position: "absolute", inset: 0,
           width: "100%", height: "100%",
@@ -440,6 +441,7 @@ const Therapists = () => {
               <img
                 src={i === 0 ? "/therapist1.jpg" : i === 1 ? "/therapist2.jpg" : "/therapist3.jpg"}
                 alt={t.name}
+                loading="lazy"
                 style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.6s ease" }}
                 className={hov === t.id ? "hover-scale-sm" : ""}
               />

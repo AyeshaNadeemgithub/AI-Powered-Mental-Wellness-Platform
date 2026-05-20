@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { colors, fonts, radius, shadows } from "../../styles/theme";
 import * as api from "../../api";
 
@@ -20,7 +20,9 @@ const TopBar = ({ onMenuClick }) => {
 
   useEffect(() => {
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 30000);
+    // Increase polling interval on mobile for better performance
+    const pollInterval = window.innerWidth < 768 ? 45000 : 30000;
+    const interval = setInterval(fetchNotifs, pollInterval);
     return () => clearInterval(interval);
   }, []);
 
@@ -170,4 +172,4 @@ const TopBar = ({ onMenuClick }) => {
   );
 };
 
-export default TopBar;
+export default memo(TopBar);

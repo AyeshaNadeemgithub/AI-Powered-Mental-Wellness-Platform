@@ -1,28 +1,48 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy, useState, useEffect } from "react";
 
 // Layout
 import AppLayout from "./components/layout/AppLayout";
 
-// Pages
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import AiChat from "./pages/AiChat";
-import TherapistChat from "./pages/TherapistChat";
-import MoodTracking from "./pages/MoodTracking";
-import Journal from "./pages/Journal";
-import Appointments from "./pages/Appointments";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import PatientSignup from "./pages/PatientSignup";
-import TherapistSignup from "./pages/TherapistSignup";
-import AdminSignup from "./pages/AdminSignup";
-import AdminDashboard from "./pages/AdminDashboard";
-import PsychologistDashboard from "./pages/PsychologistDashboard";
-import PatientHistory from "./pages/PatientHistory";
+// Pages - Lazy load for better performance, especially on mobile
+const Landing = lazy(() => import("./pages/Landing"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AiChat = lazy(() => import("./pages/AiChat"));
+const TherapistChat = lazy(() => import("./pages/TherapistChat"));
+const MoodTracking = lazy(() => import("./pages/MoodTracking"));
+const Journal = lazy(() => import("./pages/Journal"));
+const Appointments = lazy(() => import("./pages/Appointments"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/Login"));
+const PatientSignup = lazy(() => import("./pages/PatientSignup"));
+const TherapistSignup = lazy(() => import("./pages/TherapistSignup"));
+const AdminSignup = lazy(() => import("./pages/AdminSignup"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const PsychologistDashboard = lazy(() => import("./pages/PsychologistDashboard"));
+const PatientHistory = lazy(() => import("./pages/PatientHistory"));
+
 import { isLoggedIn } from "./api";
 import { Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div style={{ 
+    height: "100vh", display: "flex", flexDirection: "column", 
+    alignItems: "center", justifyContent: "center", gap: 20,
+    background: "#F0EEFB"
+  }}>
+    <div style={{
+      width: 48, height: 48, borderRadius: "50%",
+      border: "3px solid #E9D5FF",
+      borderTopColor: "#8B5CF6",
+      animation: "spin 1s linear infinite"
+    }} />
+    <style>{`
+      @keyframes spin { to { transform: rotate(360deg); } }
+    `}</style>
+  </div>
+);
 
 const ProtectedRoute = ({ children }) => {
   if (!isLoggedIn()) return <Navigate to="/login" replace />;
@@ -185,34 +205,36 @@ const Preloader = () => {
 const App = () => {
   return (
     <BrowserRouter>
-      <div style={{ opacity: 1, transition: "opacity 0.6s ease-in" }}>
-        <Routes>
-          {/* Public — no sidebar */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/patient-signup" element={<PatientSignup />} />
-          <Route path="/therapist-signup" element={<TherapistSignup />} />
-          <Route path="/admin-signup" element={<AdminSignup />} />
+      <div>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/* Public — no sidebar */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/patient-signup" element={<PatientSignup />} />
+            <Route path="/therapist-signup" element={<TherapistSignup />} />
+            <Route path="/admin-signup" element={<AdminSignup />} />
 
-          {/* Admin & Psychologist Dashboards — custom layout */}
-          <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/psychologist-dashboard" element={<ProtectedRoute><PsychologistDashboard /></ProtectedRoute>} />
+            {/* Admin & Psychologist Dashboards — custom layout */}
+            <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/psychologist-dashboard" element={<ProtectedRoute><PsychologistDashboard /></ProtectedRoute>} />
 
-          {/* App shell — all children get Sidebar + TopBar */}
-          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/mood" element={<MoodTracking />} />
-            <Route path="/ai-support" element={<AiChat />} />
-            <Route path="/chat" element={<TherapistChat />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/history" element={<PatientHistory />} />
-          </Route>
+            {/* App shell — all children get Sidebar + TopBar */}
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/mood" element={<MoodTracking />} />
+              <Route path="/ai-support" element={<AiChat />} />
+              <Route path="/chat" element={<TherapistChat />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/appointments" element={<Appointments />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/history" element={<PatientHistory />} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </div>
     </BrowserRouter>
   );

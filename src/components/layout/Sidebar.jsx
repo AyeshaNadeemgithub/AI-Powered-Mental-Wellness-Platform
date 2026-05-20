@@ -179,4 +179,4 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);
