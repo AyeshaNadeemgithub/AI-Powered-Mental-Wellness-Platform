@@ -69,7 +69,7 @@ export default function PatientSignup() {
       }
       // Redirect to login instead of dashboard
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 1800);
+      navigate("/login");
     } catch (err) {
       setApiError("Connection failed. Is the backend running?");
     } finally {

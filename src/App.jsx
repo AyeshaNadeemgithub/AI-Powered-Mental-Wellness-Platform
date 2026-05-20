@@ -183,19 +183,9 @@ const Preloader = () => {
 };
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3600);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <BrowserRouter>
-      {loading && <Preloader />}
-      <div style={{ opacity: loading ? 0 : 1, transition: "opacity 0.6s ease-in" }}>
+      <div style={{ opacity: 1, transition: "opacity 0.6s ease-in" }}>
         <Routes>
           {/* Public — no sidebar */}
           <Route path="/" element={<Landing />} />

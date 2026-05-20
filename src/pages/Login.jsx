@@ -33,7 +33,7 @@ export default function Login() {
     setSelectedRole(roleId);
     setForm({ email: "", password: "" });
     setError("");
-    setTimeout(() => setStep("login"), 80);
+    setStep("login");
   }
 
   function handleBack() {
@@ -74,7 +74,7 @@ export default function Login() {
       let redirectPath = "/dashboard";
       if (selectedRole === "admin") redirectPath = "/admin-dashboard";
       if (selectedRole === "psychologist") redirectPath = "/psychologist-dashboard";
-      setTimeout(() => navigate(redirectPath), 1800);
+      navigate(redirectPath);
 
     } catch (err) {
       triggerShake("Connection failed. Is the backend running?");

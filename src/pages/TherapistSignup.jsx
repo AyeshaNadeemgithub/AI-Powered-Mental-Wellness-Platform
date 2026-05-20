@@ -115,7 +115,6 @@ export default function TherapistSignup() {
   };
 
   if (success) {
-    setTimeout(() => navigate("/login"), 1800);
     return (
       <div style={styles.page}>
         <div style={styles.blobA} /><div style={styles.blobB} />
